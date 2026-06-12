@@ -6,26 +6,26 @@
 
 ---
 
-## STEP 0. 사전 설계 결정 (코드 작성 전 확정)
+## STEP 0. 사전 설계 결정 (코드 작성 전 확정) ✅
 
-- [ ] 이벤트 페이로드 스키마 확정 — Sentry Event Payload 포맷 차용, 필수/선택 필드 문서화
-- [ ] DSN 발급 규칙 확정 — `https://{public_key}@{host}/{project_id}`
-- [ ] 이벤트 1건 최대 크기 확정 (200KB~1MB 중 결정)
-- [ ] 이벤트 보관 기간 확정 (원본 90일 / 이슈 요약 영구)
-- [ ] IP 주소 기록 여부 결정
-- [ ] 🔗 확정된 페이로드 스키마를 프론트엔드(SDK 개발)에 공유
+- [x] 이벤트 페이로드 스키마 확정 — `packages/shared/src/event.ts` (Sentry Event Payload 포맷 차용)
+- [x] DSN 발급 규칙 확정 — `packages/shared/src/dsn.ts`
+- [x] 이벤트 1건 최대 크기 확정 — 1MB (`shared/src/constants.ts` `MAX_EVENT_BYTES`)
+- [x] 이벤트 보관 기간 확정 — 원본 90일 / 이슈 요약 영구 (`EVENT_RETENTION_DAYS`)
+- [ ] IP 주소 기록 여부 결정 — **미결정**, STEP 3(정규화) 구현 전까지 확정 필요
+- [x] 🔗 확정된 페이로드 스키마를 프론트엔드(SDK 개발)에 공유 — 모노레포 `@errortracking/shared` 공용 의존성으로 해결
 
-## STEP 1. DB 스키마 (Phase 1)
+## STEP 1. DB 스키마 (Phase 1) ✅
 
-- [ ] 마이그레이션 도구 셋업
-- [ ] `projects` 테이블 — 이름, 플랫폼, public_key(DSN), 생성일
-- [ ] `issues` 테이블 — fingerprint, 제목(culprit), 상태(unresolved/resolved/ignored), level, first_seen, last_seen, times_seen, 영향 유저 수
-- [ ] `events` 테이블 — event_id(UUID), issue_id(FK), 원본 페이로드(JSONB), timestamp, release, environment
-- [ ] `releases`, `artifacts`(sourcemaps) 테이블 — 6단계에서 사용하지만 스키마는 지금 확정
-- [ ] `users_affected` 테이블 — 이슈별 영향 유저 distinct 집계용
-- [ ] UNIQUE 제약: `issues(project_id, fingerprint)`
-- [ ] 인덱스: `events(issue_id, timestamp)`, `events(project_id, timestamp)`
-- [ ] (선택) JSONB GIN 인덱스 — 태그 검색용
+- [x] 마이그레이션 도구 셋업 — Drizzle ORM + drizzle-kit (`apps/api/drizzle/`에 SQL 커밋)
+- [x] `projects` 테이블 — 이름, 플랫폼, public_key(DSN), 생성일
+- [x] `issues` 테이블 — fingerprint, 제목(culprit), 상태(unresolved/resolved/ignored), level, first_seen, last_seen, times_seen, 영향 유저 수
+- [x] `events` 테이블 — event_id(UUID), issue_id(FK), 원본 페이로드(JSONB), timestamp, release, environment
+- [x] `releases`, `artifacts`(sourcemaps) 테이블 — 6단계에서 사용하지만 스키마는 지금 확정
+- [x] `users_affected` 테이블 — 이슈별 영향 유저 distinct 집계용
+- [x] UNIQUE 제약: `issues(project_id, fingerprint)`
+- [x] 인덱스: `events(issue_id, timestamp)`, `events(project_id, timestamp)`
+- [ ] (선택) JSONB GIN 인덱스 — 태그 검색용 → STEP 6(태그 검색 구현) 시점에 판단
 
 ## STEP 2. 수집 API — Ingestion (Phase 1)
 

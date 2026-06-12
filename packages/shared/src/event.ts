@@ -3,7 +3,15 @@
  * SDK가 만들고, 수집 API가 검증하고, 대시보드가 표시하는 단일 계약(contract).
  */
 
-export type Severity = "fatal" | "error" | "warning" | "info" | "debug";
+export const SEVERITY_LEVELS = [
+  "fatal",
+  "error",
+  "warning",
+  "info",
+  "debug",
+] as const;
+
+export type Severity = (typeof SEVERITY_LEVELS)[number];
 
 export type Platform = "javascript" | "python" | (string & {});
 
