@@ -19,7 +19,7 @@
 ## 1. 설계 결정 (todo STEP 0)
 
 - [x] **페이로드 스키마·DSN 규칙·크기 제한(1MB)·보관 기간(원본 90일/이슈 영구)** — 문서가 아닌 `packages/shared` 코드로 확정, 변경 시 상수 한 곳만 수정 — 2026-06-12 sunmin
-- [ ] **IP 주소 기록 여부** — ⚠️ 미결정. 처리 파이프라인(정규화) 구현 전 확정 필요
+- [x] **IP 주소 기록 여부** — **기본 미기록** 결정 (개인정보 최소화 원칙, user.ip_address 제거). 필요 시 env `RECORD_IP=true`로 활성화 — 2026-06-12 sunmin
 
 ## 2. DB 스키마 (todo STEP 1)
 
@@ -44,20 +44,26 @@
   - 부수: `/healthz`(DB ping 포함) · `pnpm seed`(dev 프로젝트 생성 + DSN 출력)
   - 검증: 실서버 시나리오 테스트 9종 통과 (401 키없음/오류 · 404 미존재 프로젝트 · 400 깨진JSON/잘못된 event_id · 202 정상/중복 · 429+Retry-After · 413)
 
-## 4. 처리 파이프라인 (todo STEP 3) — 🎯 다음 작업
+## 4. 처리 파이프라인 (todo STEP 3)
 
-- [ ] **정규화** — 누락 필드 기본값, 타임스탬프 보정, 트리밍, 서버 측 민감정보 스크러빙, IP 정책 적용 (현재 `src/pipeline/`은 stub)
-- [ ] **핑거프린팅** — 스택 정규화(in_app 추출·가변 경로 제거·함수명 정규화) → 지문 해싱, 스택 없으면 타입+메시지 템플릿 폴백, SDK 커스텀 fingerprint 우선
-- [ ] **이슈 upsert (트랜잭션)** — 동일 지문 `times_seen`+1·`last_seen` 갱신 / 신규 생성(제목=예외타입: 메시지, culprit=최상위 in_app 프레임) + events INSERT
+- [x] **정규화** — 타임스탬프 보정(누락/미래 클램프, sec/ms 자동 판별), 누락 필드 기본값(platform/level/environment), 크기 초과 트리밍(문자열 8KB, breadcrumbs 최근 100개) (`src/pipeline/normalize.ts`) — 2026-06-12 sunmin
+- [x] **민감정보 스크러빙 (서버 2차 방어)** — 키 이름 기반 `[REDACTED]`(password/secret/token/api_key/authorization/cookie/card/cvv/ssn 등) + 카드번호 패턴(13~19자리, 공백·하이픈 허용) 마스킹, 전체 페이로드 재귀 적용 (`src/pipeline/scrub.ts`) — 2026-06-12 sunmin
+- [x] **IP 기록 정책 적용** — 기본 `user.ip_address` 제거, `RECORD_IP=true`일 때만 보존 (§1 결정 이행) — 2026-06-12 sunmin
+- [x] **핑거프린팅** — in_app 프레임 추출(미지정=in_app 취급, 전무 시 전체 폴백) → 파일명 정규화(origin/쿼리 제거, 8자+ hex 빌드해시 `<hash>` 치환) + 함수명 정규화(익명 통일) → 안쪽 8프레임 + 예외 타입 sha256 해싱. **lineno/colno 의도적 제외**(minify 빌드마다 변동해 그룹핑 깨짐 방지). 스택 없으면 타입+메시지 템플릿(uuid/hex/숫자 치환) 폴백, 메시지 전용 이벤트 지원, SDK 커스텀 `fingerprint` 최우선 (`src/pipeline/fingerprint.ts`) — 2026-06-12 sunmin
+- [x] **이슈 upsert + 이벤트 저장 (트랜잭션)** — `ON CONFLICT(project_id, fingerprint)`: times_seen+1 · last_seen GREATEST · level 갱신 / 신규: 제목="타입: 메시지" · culprit=최상위 in_app 프레임. events INSERT는 tx 내 중복 재확인 + UNIQUE 제약 백스톱 (`src/pipeline/index.ts`) — 2026-06-12 sunmin
+- [x] **영향 유저 집계** — `users_affected` upsert: 신규 유저만 `issues.user_count` 증가, 기존 유저는 last_seen 갱신 — 2026-06-12 sunmin
+- [x] **재발 감지** — resolved 이슈에 새 이벤트 → unresolved 전환 + regression 플래그 (upsert CASE 식, todo STEP 5 항목 조기 구현) — 2026-06-12 sunmin
+- 검증(e2e): 동일 TypeError 3건(빌드해시·colno 상이) → 1이슈 times_seen=3·user_count=2 / "User 12345/67890 not found" 메시지 2건 → 1이슈(숫자 템플릿) / ReferenceError 별도 이슈 / password·카드번호 `[REDACTED]`·ip_address 미기록 확인 / resolve 후 재전송 → unresolved + regression=true + user_count=3
+- [ ] 심볼리케이션(소스맵)은 §8 구현 시 핑거프린팅 앞 단계로 삽입
 
-## 5. 조회 API (todo STEP 4) — M1 마일스톤
+## 5. 조회 API (todo STEP 4) — M1 마일스톤 — 🎯 다음 작업
 
 - [ ] **인증/프로젝트 관리** — 로그인·세션, 프로젝트 CRUD + DSN 발급
 - [ ] **이슈 목록 API** — 정렬(최근/빈도/첫 발생)·상태 필터·페이지네이션 → 🔗 프론트 이슈 목록 연동 시 **M1 달성** (curl 에러가 이슈로 목록에 보임)
 
 ## 6. 이슈 상세·집계·검색 (todo STEP 5~6)
 
-- [ ] **이슈 상세 API** — 상세 조회, 이벤트 페이지네이션, 원본 JSON, 상태 변경(단건/일괄), **재발 감지**(resolved→unresolved + regression)
+- [ ] **이슈 상세 API** — 상세 조회, 이벤트 페이지네이션, 원본 JSON, 상태 변경(단건/일괄). 재발 감지는 §4에서 구현 완료
 - [ ] **집계** — 시간대별 발생 버킷(그래프), 영향 유저 distinct, 태그 분포(browser/OS/release)
 - [ ] **검색** — 텍스트 + 태그 문법(`browser:Chrome`), level/environment/release 필터
 
@@ -78,5 +84,5 @@
 ## 비고
 
 - **마일스톤**: M1(§4+§5 완료 시) → M2~M4(프론트 트랙) → M6(§8) — [service-plan.md](service-plan.md) Phase 표 참고
-- **미결정 2건**: IP 기록 여부(§1) · GIN 인덱스(§2)
+- **미결정 1건**: GIN 인덱스(§2) — 태그 검색 구현 시 판단 (IP 기록 여부는 §1에서 기본 미기록으로 확정)
 - 로컬 개발: `pnpm db:up` → `pnpm --filter @errortracking/api seed` → `pnpm --filter @errortracking/api dev` (PORT 4000, `127.0.0.1` 사용 — localhost는 IPv6로 풀릴 수 있음)
