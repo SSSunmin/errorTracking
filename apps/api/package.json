@@ -5,13 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "seed": "tsx src/scripts/seed-dev.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@errortracking/shared": "workspace:*",
+    "@fastify/cors": "^11.2.0",
     "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.5",
     "pg": "^8.21.0"
   },
   "devDependencies": {

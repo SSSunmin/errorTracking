@@ -27,16 +27,17 @@
 - [x] 인덱스: `events(issue_id, timestamp)`, `events(project_id, timestamp)`
 - [ ] (선택) JSONB GIN 인덱스 — 태그 검색용 → STEP 6(태그 검색 구현) 시점에 판단
 
-## STEP 2. 수집 API — Ingestion (Phase 1)
+## STEP 2. 수집 API — Ingestion (Phase 1) ✅
 
-- [ ] `POST /api/{project_id}/store/` 엔드포인트
-- [ ] DSN public_key 인증 (`X-Sentry-Auth` 헤더 또는 쿼리 파라미터)
-- [ ] CORS 설정 (브라우저 SDK cross-origin 전송 허용)
-- [ ] 페이로드 검증 — 필수 필드, 크기 제한, JSON 파싱 실패 처리
-- [ ] `event_id` 기준 중복 수신 제거
-- [ ] 프로젝트별 rate limit (분당 300건) → 초과 시 `429 + Retry-After`
-- [ ] 즉시 202 응답 후 비동기 처리(백그라운드 잡)로 위임
-- [ ] 🔗 인프라: 워커(백그라운드 잡) 실행 방식 협의
+- [x] `POST /api/{project_id}/store/` 엔드포인트 — Fastify (`apps/api/src/routes/store.ts`)
+- [x] DSN public_key 인증 (`X-Sentry-Auth` 헤더 또는 쿼리 파라미터) — 두 경로 모두 지원
+- [x] CORS 설정 (브라우저 SDK cross-origin 전송 허용) — text/plain 페이로드도 JSON 파싱
+- [x] 페이로드 검증 — event_id 형식 검증, 크기 제한(1MB→413), JSON 파싱 실패(400)
+- [x] `event_id` 기준 중복 수신 제거 — 인메모리 LRU + DB 조회, 최종 방어는 UNIQUE 제약
+- [x] 프로젝트별 rate limit (분당 300건) → 초과 시 `429 + Retry-After` (env로 오버라이드 가능)
+- [x] 즉시 202 응답 후 비동기 처리(백그라운드 잡)로 위임 — in-process FIFO 큐 (`src/queue/`)
+- [x] 🔗 인프라: 워커 실행 방식 — **API 프로세스 내 in-process 큐로 결정** (단일 서버 전제, 부하 분리 필요 시 apps/worker로 추출)
+- 참고: 로컬 테스트용 `pnpm --filter @errortracking/api seed` — dev 프로젝트 생성 + DSN 출력, `/healthz` 엔드포인트 포함
 
 ## STEP 3. 처리 파이프라인 — 기본 (Phase 1)
 
