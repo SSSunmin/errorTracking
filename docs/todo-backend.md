@@ -51,13 +51,13 @@
 - [x] 이슈 upsert (트랜잭션) — 동일 지문이면 `times_seen`+1, `last_seen` 갱신 / 없으면 새 이슈 생성 (제목 = 예외타입: 메시지, culprit = 최상위 in_app 프레임) + 영향 유저 집계(users_affected/user_count)
 - 참고: 재발 감지(STEP 5 항목)는 upsert 로직에 포함되어 조기 구현됨
 
-## STEP 4. 대시보드용 조회 API — 기본 (Phase 1)
+## STEP 4. 대시보드용 조회 API — 기본 (Phase 1) ✅
 
-- [ ] 로그인/세션 인증 API
-- [ ] 프로젝트 CRUD API + DSN 발급/표시
-- [ ] 이슈 목록 API — 정렬(최근 발생/빈도/첫 발생), 상태 필터, 페이지네이션
-- [ ] 🔗 프론트엔드: 이슈 목록 화면 연동
-- [ ] ✅ **마일스톤 M1**: curl로 보낸 에러가 이슈로 묶여 목록 API에 나온다
+- [x] 로그인/세션 인증 API — users 테이블 + scrypt 해시 + 서명된 세션 쿠키 (`routes/auth.ts`, `lib/password.ts`, `lib/session.ts`)
+- [x] 프로젝트 CRUD API + DSN 발급/표시 (`routes/projects.ts`)
+- [x] 이슈 목록 API — 정렬(최근 발생/빈도/첫 발생), 상태 필터, 페이지네이션 (`routes/issues.ts`)
+- [ ] 🔗 프론트엔드: 이슈 목록 화면 연동 (프론트 트랙 대기)
+- [x] ✅ **마일스톤 M1 (백엔드 측)**: curl로 보낸 에러가 이슈로 묶여 목록 API에 나온다 — 2026-06-12 달성
 
 ## STEP 5. 이슈 상세 API (Phase 3)
 

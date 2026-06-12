@@ -33,6 +33,21 @@ export const issueStatusEnum = pgEnum(
   ISSUE_STATUSES as unknown as [IssueStatus, ...IssueStatus[]],
 );
 
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull(),
+    /** scrypt — `{salt}:{hash}` hex */
+    passwordHash: text("password_hash").notNull(),
+    name: text("name"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("users_email_uq").on(t.email)],
+);
+
 export const projects = pgTable(
   "projects",
   {

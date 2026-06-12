@@ -8,6 +8,13 @@
       "when": 1781251267485,
       "tag": "0000_daily_unus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781253306915,
+      "tag": "0001_eager_banshee",
+      "breakpoints": true
     }
   ]
 }

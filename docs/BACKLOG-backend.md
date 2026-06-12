@@ -56,12 +56,16 @@
 - 검증(e2e): 동일 TypeError 3건(빌드해시·colno 상이) → 1이슈 times_seen=3·user_count=2 / "User 12345/67890 not found" 메시지 2건 → 1이슈(숫자 템플릿) / ReferenceError 별도 이슈 / password·카드번호 `[REDACTED]`·ip_address 미기록 확인 / resolve 후 재전송 → unresolved + regression=true + user_count=3
 - [ ] 심볼리케이션(소스맵)은 §8 구현 시 핑거프린팅 앞 단계로 삽입
 
-## 5. 조회 API (todo STEP 4) — M1 마일스톤 — 🎯 다음 작업
+## 5. 조회 API (todo STEP 4)
 
-- [ ] **인증/프로젝트 관리** — 로그인·세션, 프로젝트 CRUD + DSN 발급
-- [ ] **이슈 목록 API** — 정렬(최근/빈도/첫 발생)·상태 필터·페이지네이션 → 🔗 프론트 이슈 목록 연동 시 **M1 달성** (curl 에러가 이슈로 목록에 보임)
+- [x] **로그인/세션 인증** — `users` 테이블(마이그레이션 0001) + scrypt 비밀번호 해시(node:crypto, 외부 의존성 없음) + 서명된 httpOnly 세션 쿠키(7일, `@fastify/cookie`). `POST /api/auth/login`·`logout`·`GET /api/auth/me`, 대시보드 API 공용 `requireAuth` 가드, CORS `credentials: true` (`routes/auth.ts`, `lib/password.ts`, `lib/session.ts`) — 2026-06-12 sunmin
+- [x] **프로젝트 CRUD + DSN 발급** — 목록/생성(public_key 자동 발급)/단건/수정/삭제(FK cascade로 이슈·이벤트 동반 삭제). DSN은 `PUBLIC_BASE_URL` env 또는 요청 host로 조립해 응답에 포함 (`routes/projects.ts`) — 2026-06-12 sunmin
+- [x] **이슈 목록 API** — `GET /api/projects/:id/issues`: 정렬 3종(last_seen/first_seen/times_seen), status 필터(잘못된 값 400), page/limit 페이지네이션(기본 25, 최대 100), total 동시 반환 (`routes/issues.ts`) — 2026-06-12 sunmin
+- [x] **seed 확장** — admin 계정 생성(`ADMIN_EMAIL`/`ADMIN_PASSWORD` env, 기본 admin@local.dev) + `.env.example`에 SESSION_SECRET 등 추가 — 2026-06-12 sunmin
+- 검증(e2e): 시나리오 15종 통과 — 로그인 성공/실패, 쿠키 유무별 401/200, 프로젝트 목록·생성·삭제, 정렬(빈도순 4→2→1)·필터(resolved=0)·페이지네이션(limit2 page2=1건)·잘못된 status 400, 로그아웃 후 401
+- ✅ **M1 마일스톤 (백엔드 측) 달성** — curl 에러 → 이슈 그룹핑 → 목록 API 노출. 프론트 이슈 목록 화면 연동 시 M1 완전 달성 — 2026-06-12
 
-## 6. 이슈 상세·집계·검색 (todo STEP 5~6)
+## 6. 이슈 상세·집계·검색 (todo STEP 5~6) — 🎯 다음 작업
 
 - [ ] **이슈 상세 API** — 상세 조회, 이벤트 페이지네이션, 원본 JSON, 상태 변경(단건/일괄). 재발 감지는 §4에서 구현 완료
 - [ ] **집계** — 시간대별 발생 버킷(그래프), 영향 유저 distinct, 태그 분포(browser/OS/release)
