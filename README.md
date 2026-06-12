@@ -6,7 +6,8 @@
 
 - [서비스 기획서](docs/service-plan.md)
 - [개발 체크리스트 (원본)](docs/error-tracking-checklist.md)
-- TODO: [백엔드](docs/todo-backend.md) · [프론트엔드](docs/todo-frontend.md) · [인프라](docs/todo-infra.md)
+- BACKLOG (기능별 진행 현황 + 완료일): [백엔드](docs/BACKLOG-backend.md) · [프론트엔드](docs/BACKLOG-frontend.md) · [인프라](docs/BACKLOG-infra.md)
+- TODO (작업 순서 체크리스트): [백엔드](docs/todo-backend.md) · [프론트엔드](docs/todo-frontend.md) · [인프라](docs/todo-infra.md)
 
 ## 구조
 
