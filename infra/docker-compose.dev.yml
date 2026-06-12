@@ -1,0 +1,24 @@
+# 로컬 개발용 — 인프라 STEP 1 (docs/todo-infra.md)
+# 운영용 Compose(API + Worker + DB + Front)는 인프라 STEP 2에서 별도 작성
+name: errortracking-dev
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-errortracking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-errortracking}
+      POSTGRES_DB: ${POSTGRES_DB:-errortracking}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-errortracking}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  db-data:

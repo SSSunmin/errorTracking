@@ -1,0 +1,11 @@
+{
+  "name": "errortracking",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@11.6.0",
+  "scripts": {
+    "db:up": "docker compose -f infra/docker-compose.dev.yml up -d",
+    "db:down": "docker compose -f infra/docker-compose.dev.yml down",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
