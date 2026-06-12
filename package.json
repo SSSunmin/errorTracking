@@ -6,6 +6,7 @@
   "scripts": {
     "db:up": "docker compose -f infra/docker-compose.dev.yml up -d",
     "db:down": "docker compose -f infra/docker-compose.dev.yml down",
+    "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   }
 }

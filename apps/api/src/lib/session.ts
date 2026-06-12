@@ -8,10 +8,16 @@ export const SESSION_SECRET =
 
 const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 7; // 7일
 
+/** HTTPS 환경(운영)에서는 secure 쿠키 강제 */
+const COOKIE_SECURE =
+  process.env.COOKIE_SECURE === "true" ||
+  process.env.NODE_ENV === "production";
+
 export function setSessionCookie(reply: FastifyReply, userId: number): void {
   reply.setCookie(SESSION_COOKIE, String(userId), {
     signed: true,
     httpOnly: true,
+    secure: COOKIE_SECURE,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_SEC,

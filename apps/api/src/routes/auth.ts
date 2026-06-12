@@ -2,7 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { users } from "../db/schema";
-import { verifyPassword } from "../lib/password";
+import { hashPassword, verifyPassword } from "../lib/password";
+import { checkRateLimit } from "../lib/rate-limit";
 import {
   clearSessionCookie,
   getSessionUserId,
@@ -10,8 +11,21 @@ import {
   setSessionCookie,
 } from "../lib/session";
 
+/** 로그인 brute-force 방지 — IP당 분당 시도 제한 */
+const LOGIN_ATTEMPTS_PER_MINUTE = 10;
+
 export function registerAuthRoutes(app: FastifyInstance): void {
   app.post("/api/auth/login", async (req, reply) => {
+    const rate = checkRateLimit(`login:${req.ip}`, {
+      limit: LOGIN_ATTEMPTS_PER_MINUTE,
+    });
+    if (!rate.allowed) {
+      return reply
+        .code(429)
+        .header("Retry-After", String(rate.retryAfterSec))
+        .send({ error: "too many login attempts" });
+    }
+
     const body = req.body as { email?: unknown; password?: unknown } | null;
     if (
       typeof body?.email !== "string" ||
@@ -24,7 +38,12 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email.trim().toLowerCase()),
     });
-    if (!user || !verifyPassword(body.password, user.passwordHash)) {
+    if (!user) {
+      // 타이밍으로 계정 존재 여부가 드러나지 않도록 동일 비용 소모
+      await hashPassword(body.password);
+      return reply.code(401).send({ error: "invalid credentials" });
+    }
+    if (!(await verifyPassword(body.password, user.passwordHash))) {
       return reply.code(401).send({ error: "invalid credentials" });
     }
     setSessionCookie(reply, user.id);

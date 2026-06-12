@@ -40,7 +40,7 @@ export function registerStoreRoute(app: FastifyInstance): void {
       }
 
       // 2. 프로젝트별 rate limit → 초과 시 429 + Retry-After (SDK가 준수)
-      const rate = checkRateLimit(projectId);
+      const rate = checkRateLimit(`project:${projectId}`);
       if (!rate.allowed) {
         return reply
           .code(429)

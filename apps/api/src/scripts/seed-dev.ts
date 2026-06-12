@@ -18,7 +18,7 @@ if (existingAdmin) {
 } else {
   await db.insert(users).values({
     email: ADMIN_EMAIL,
-    passwordHash: hashPassword(ADMIN_PASSWORD),
+    passwordHash: await hashPassword(ADMIN_PASSWORD),
     name: "admin",
   });
   console.log(`admin:       ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);

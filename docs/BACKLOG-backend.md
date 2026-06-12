@@ -83,6 +83,16 @@
 
 - [ ] 보관 기간 삭제 잡(**필수**) · 소스맵 정리 잡 · 자기 에러 로깅 분리 (healthz는 §3에서 선구현됨)
 
+## 10. 품질 (테스트 · 보안) — 모든 STEP의 완료 기준에 포함
+
+- [x] **vitest 테스트 인프라** — shared/api 패키지에 vitest, 루트 `pnpm test`로 전체 실행 — 2026-06-12 sunmin
+- [x] **단위 테스트 74개** — shared 22개(DSN 파서, event-id 정규화) + api 52개(스크러빙, 핑거프린팅, 정규화, 비밀번호 해시, rate limit). 그룹핑 회귀 방지 케이스 포함(빌드해시/lineno 무시, 메시지 템플릿화, in_app 우선, 커스텀 fingerprint) — 2026-06-12 sunmin
+- [x] **보안 수정 ①: CORS 이원화** — (취약점) 임의 origin 반사 + credentials 허용 조합 제거. 수집 store 엔드포인트는 전체 origin·credentials 없음(SDK용), 대시보드 API는 `DASHBOARD_ORIGINS` 허용 목록 + credentials만 — 2026-06-12 sunmin
+- [x] **보안 수정 ②: 로그인 brute-force 제한** — IP당 분당 10회 초과 시 `429 + Retry-After` (rate-limit 모듈을 문자열 키로 일반화해 재사용) — 2026-06-12 sunmin
+- [x] **보안 수정 ③: scrypt 비동기화 + 타이밍 균등화** — `scryptSync` 이벤트 루프 블로킹(DoS 벡터) 제거, 계정 부재 시에도 동일 비용 해시 수행으로 계정 존재 여부 타이밍 노출 방지 — 2026-06-12 sunmin
+- [x] **보안 수정 ④: 세션 쿠키 secure 플래그** — `NODE_ENV=production` 또는 `COOKIE_SECURE=true`에서 강제 — 2026-06-12 sunmin
+- 검증: 단위 테스트 74개 전부 통과 + e2e(CORS preflight 3종 — evil origin은 대시보드 API에서 ACAO 미발급, brute-force 11번째 429) 통과
+
 ---
 
 ## 비고
