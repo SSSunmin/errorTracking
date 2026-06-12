@@ -22,20 +22,20 @@
 - [x] 상태 필터: unresolved / resolved / ignored / 전체 + 페이지네이션
 - [x] ✅ **마일스톤 M1**: 백엔드에 들어온 에러가 이슈 목록에 보인다 — 2026-06-12 달성 (브라우저 e2e 확인)
 
-## STEP 2. JavaScript SDK — 기본 캡처 (Phase 2)
+## STEP 2. JavaScript SDK — 기본 캡처 (Phase 2) ✅
 
-- [ ] SDK `init({ dsn, release, environment, ... })` 진입점
-- [ ] DSN 파싱 → 수집 엔드포인트 결정
-- [ ] `window.onerror` 후킹 (런타임 에러)
-- [ ] `window.onunhandledrejection` 후킹 (Promise 거부)
-- [ ] 수동 캡처 API — `captureException(err)`, `captureMessage(msg, level)`
-- [ ] 스택 트레이스 파싱 — 프레임별 `filename`, `function`, `lineno`, `colno`
-- [ ] `in_app` 판별 — 내 코드 vs 라이브러리/node_modules 구분
-- [ ] `mechanism` 기록 — onerror / unhandledrejection / 수동
-- [ ] 체이닝 예외 지원 — `cause` 따라가며 다중 exception 기록
-- [ ] 전송(Transport) — 이벤트 POST, `event_id` UUID 클라이언트 생성
-- [ ] 기본 컨텍스트 자동 첨부 — browser/os(UA 파싱), sdk 이름/버전, release, environment, level
-- [ ] ✅ **마일스톤 M2**: 실제 브라우저 에러가 자동으로 대시보드에 나타난다
+- [x] SDK `init({ dsn, release, environment })` 진입점
+- [x] DSN 파싱 → 수집 엔드포인트 결정 (shared 재사용)
+- [x] `window.onerror` 후킹 — addEventListener로 기존 핸들러 보존, error 객체 없으면 합성
+- [x] `window.onunhandledrejection` 후킹 (Promise 거부)
+- [x] 수동 캡처 API — `captureException(err)`, `captureMessage(msg, level)`
+- [x] 스택 트레이스 파싱 — Chrome/Firefox/Safari 포맷, 프레임별 `filename`/`function`/`lineno`/`colno`
+- [x] `in_app` 판별 — same-origin이며 node_modules 아닌 스크립트만 true
+- [x] `mechanism` 기록 — onerror / onunhandledrejection / manual
+- [x] 체이닝 예외 지원 — `cause` 최대 5단계, oldest-first 기록
+- [x] 전송(Transport) — text/plain simple request POST, `event_id` 클라이언트 생성, credentials omit
+- [x] 기본 컨텍스트 자동 첨부 — browser/os(UA 파싱), sdk 이름/버전, release, environment, request.url
+- [x] ✅ **마일스톤 M2**: 실제 브라우저 에러가 자동으로 대시보드에 나타난다 — 2026-06-12 달성 (데모 페이지 e2e)
 
 ## STEP 3. 이슈 상세 화면 (Phase 3)
 

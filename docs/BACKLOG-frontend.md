@@ -23,10 +23,15 @@
 
 ## 2. JS SDK 기본 캡처 (todo STEP 2) — M2 마일스톤
 
-- [ ] **자동 캡처** — `window.onerror` · `window.onunhandledrejection` 후킹, mechanism 기록
-- [ ] **스택 트레이스 파싱** — 프레임별 filename/function/lineno/colno, `in_app` 판별, 체이닝 예외(`cause`)
-- [ ] **전송(Transport)** — 이벤트 POST, 기본 컨텍스트 자동 첨부(browser/os UA 파싱, sdk, release, environment)
-- [ ] 실제 브라우저 에러가 대시보드에 자동 표시되면 **M2 달성**
+- [x] **자동 캡처** — `addEventListener("error"/"unhandledrejection")`로 기존 핸들러를 덮어쓰지 않고 후킹, 리소스 로드 실패는 제외(ErrorEvent만), error 객체 없는 onerror는 filename/lineno로 합성, mechanism(onerror/onunhandledrejection/manual) 기록. SDK 내부 오류는 전부 삼켜서 앱 영향·재귀 보고 차단 (`src/index.ts`) — 2026-06-12 sunmin
+- [x] **스택 트레이스 파싱** — Chrome(`at fn (url:l:c)`)·Firefox/Safari(`fn@url:l:c`) 포맷, innermost-last(Sentry 규약)로 정렬, `in_app` 판별(same-origin && !node_modules) (`src/stacktrace.ts`) — 2026-06-12 sunmin
+- [x] **체이닝 예외 + 비Error 값** — `cause` 최대 5단계 oldest-first, mechanism은 대표 예외에만. 문자열/객체 throw도 안전 직렬화, 값 8KB 트리밍 (`src/event-builder.ts`) — 2026-06-12 sunmin
+- [x] **컨텍스트 자동 첨부** — UA 파싱(browser: Edge>Firefox>Chrome>Safari 우선순위 / os: Windows·macOS·iOS·Android·Linux), sdk 이름/버전, release/environment, request.url (`src/context.ts`) — 2026-06-12 sunmin
+- [x] **전송(Transport) — 보안 중심 설계** — `text/plain` simple request(CORS preflight 없음, 서버가 JSON 파싱), `credentials: omit`(수집 서버로 쿠키 유출 차단), `keepalive`(이탈 직전 전송), event_id 클라이언트 생성, 모든 실패 무시(fail-silent) (`src/transport.ts`) — 2026-06-12 sunmin
+- [x] **데모 페이지 + 테스트** — `pnpm --filter @errortracking/sdk demo`(DSN은 쿼리로 주입 — 키 하드코딩 없음), 단위 테스트 26개(파서/UA/빌더) → 워크스페이스 총 107개 — 2026-06-12 sunmin
+- 검증(브라우저 e2e): TypeError(onerror)/Promise 거부/cause 체인(values 2개)/captureMessage 4종 → 수집 → 그룹핑 → 대시보드 목록 표시까지 확인. mechanism·browser/os(Chrome/Windows)·in_app culprit 정확
+- ⚠️ 알려진 트레이드오프: 같은 함수 위치에서 던진 같은 타입의 다른 에러는 한 이슈로 묶임 (lineno 제외 핑거프린팅의 의도된 결과 — 소스맵 심볼리케이션 후 context_line 추가로 개선 여지, 백엔드 §8)
+- ✅ **M2 마일스톤 달성** — 실제 브라우저 에러 자동 캡처 → 대시보드 표시 — 2026-06-12
 
 ## 3. 이슈 상세 화면 (todo STEP 3) — M3 마일스톤
 

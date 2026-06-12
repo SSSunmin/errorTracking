@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>errtrack SDK demo</title>
+    <style>
+      body {
+        font-family: ui-monospace, Consolas, monospace;
+        background: #0b0e14;
+        color: #d7dce6;
+        padding: 40px;
+      }
+      button {
+        display: block;
+        margin: 8px 0;
+        padding: 10px 16px;
+        background: #11151f;
+        color: #ffb224;
+        border: 1px solid #2c3650;
+        font-family: inherit;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: #ffb224;
+      }
+      #status {
+        margin-top: 16px;
+        color: #586075;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>errtrack SDK demo</h1>
+    <p>?dsn=… 쿼리 파라미터로 DSN을 전달하세요.</p>
+    <button id="type-error">① TypeError 던지기 (onerror)</button>
+    <button id="promise-reject">② Promise 거부 (onunhandledrejection)</button>
+    <button id="chained">③ cause 체인 에러 (onerror)</button>
+    <button id="capture-message">④ captureMessage (수동)</button>
+    <div id="status">status: -</div>
+    <script type="module">
+      import { init, captureMessage } from "../src/index";
+
+      const status = document.getElementById("status");
+      const dsn = new URLSearchParams(location.search).get("dsn");
+      if (!dsn) {
+        status.textContent = "status: DSN 없음 — ?dsn= 필요";
+      } else {
+        init({ dsn, release: "demo@0.1.0", environment: "development" });
+        status.textContent = "status: SDK initialized";
+      }
+
+      document.getElementById("type-error").addEventListener("click", () => {
+        status.textContent = "status: TypeError 발생";
+        const nothing = undefined;
+        nothing.foo.bar; // TypeError → window onerror
+      });
+
+      document.getElementById("promise-reject").addEventListener("click", () => {
+        status.textContent = "status: Promise 거부 발생";
+        void Promise.reject(new Error("demo promise rejection"));
+      });
+
+      document.getElementById("chained").addEventListener("click", () => {
+        status.textContent = "status: cause 체인 에러 발생";
+        try {
+          throw new Error("root cause failure");
+        } catch (e) {
+          throw new Error("wrapper operation failed", { cause: e });
+        }
+      });
+
+      document.getElementById("capture-message").addEventListener("click", () => {
+        const id = captureMessage("demo manual message", "warning");
+        status.textContent = `status: captureMessage 전송 (${id})`;
+      });
+    </script>
+  </body>
+</html>
