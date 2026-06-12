@@ -1,4 +1,4 @@
-import type { IssueStatus, Severity } from "@errortracking/shared";
+import type { EventPayload, IssueStatus, Severity } from "@errortracking/shared";
 
 export interface User {
   id: number;
@@ -37,4 +37,26 @@ export interface IssueListResponse {
   limit: number;
   sort: IssueSort;
   status: IssueStatus | null;
+}
+
+export interface IssueDetail extends IssueSummary {
+  projectId: number;
+  fingerprint: string;
+}
+
+export interface StoredEvent {
+  id: number;
+  eventId: string;
+  payload: EventPayload;
+  timestamp: string;
+  release: string | null;
+  environment: string | null;
+  receivedAt: string;
+}
+
+export interface EventListResponse {
+  items: StoredEvent[];
+  total: number;
+  page: number;
+  limit: number;
 }

@@ -1,4 +1,6 @@
 import type {
+  EventListResponse,
+  IssueDetail,
   IssueListResponse,
   IssueSort,
   Project,
@@ -74,4 +76,21 @@ export const api = {
       `/api/projects/${projectId}/issues${qs ? `?${qs}` : ""}`,
     );
   },
+
+  getIssue: (issueId: number | string) =>
+    request<IssueDetail>(`/api/issues/${issueId}`),
+  listIssueEvents: (issueId: number | string, page = 1, limit = 1) =>
+    request<EventListResponse>(
+      `/api/issues/${issueId}/events?page=${page}&limit=${limit}`,
+    ),
+  setIssueStatus: (issueId: number | string, status: IssueStatus) =>
+    request<IssueDetail>(`/api/issues/${issueId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+  bulkSetStatus: (ids: number[], status: IssueStatus) =>
+    request<{ updated: number }>("/api/issues", {
+      method: "PATCH",
+      body: JSON.stringify({ ids, status }),
+    }),
 };

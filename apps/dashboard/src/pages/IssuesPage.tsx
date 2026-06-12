@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { IssueStatus, Severity } from "@errortracking/shared";
 import { api } from "../api/client";
 import type { IssueListResponse, IssueSort, Project } from "../api/types";
@@ -28,21 +28,24 @@ const LEVEL_COLORS: Record<Severity, string> = {
 
 export function IssuesPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [data, setData] = useState<IssueListResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<IssueStatus | "all">("unresolved");
   const [sort, setSort] = useState<IssueSort>("last_seen");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!projectId) return;
     api.getProject(projectId).then(setProject).catch(() => {});
   }, [projectId]);
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     if (!projectId) return;
     setData(null);
+    setSelected(new Set());
     api
       .listIssues(projectId, {
         status: status === "all" ? undefined : status,
@@ -52,6 +55,29 @@ export function IssuesPage() {
       .then(setData)
       .catch(() => setError("이슈 목록을 불러오지 못했습니다"));
   }, [projectId, status, sort, page]);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  function toggleSelect(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function bulkAction(newStatus: IssueStatus) {
+    if (selected.size === 0) return;
+    try {
+      await api.bulkSetStatus([...selected], newStatus);
+      reload();
+    } catch {
+      setError("일괄 변경에 실패했습니다");
+    }
+  }
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
 
@@ -93,6 +119,20 @@ export function IssuesPage() {
             </option>
           ))}
         </select>
+        {selected.size > 0 && (
+          <div className="bulk-bar">
+            <span>{selected.size}건 선택</span>
+            <button className="btn" onClick={() => void bulkAction("resolved")}>
+              해결
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => void bulkAction("ignored")}
+            >
+              무시
+            </button>
+          </div>
+        )}
       </div>
 
       {error ? (
@@ -109,10 +149,21 @@ export function IssuesPage() {
         <>
           <div className="issue-list">
             {data.items.map((issue) => (
-              <div className="issue-row" key={issue.id}>
+              <div
+                className="issue-row clickable"
+                key={issue.id}
+                onClick={() => navigate(`/issues/${issue.id}`)}
+              >
                 <div
                   className="level-bar"
                   style={{ background: LEVEL_COLORS[issue.level] }}
+                />
+                <input
+                  type="checkbox"
+                  className="row-check"
+                  checked={selected.has(issue.id)}
+                  onChange={() => toggleSelect(issue.id)}
+                  onClick={(e) => e.stopPropagation()}
                 />
                 <span
                   className="level-badge"
