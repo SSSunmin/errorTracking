@@ -9,13 +9,17 @@
 ## 0. 기반 (Foundation)
 
 - [x] **SDK 패키지 골격 `@errortracking/sdk`** — `init({ dsn, release, environment })` DSN 파싱 + 수집 엔드포인트 결정, `captureException`/`captureMessage` 시그니처 스텁, shared 타입 의존. event_id 생성 유틸은 `@errortracking/shared`(`generateEventId`)에 준비됨 — 2026-06-12 sunmin
-- [ ] **대시보드 스캐폴딩** — `apps/dashboard`에 Vite + React + TS 셋업(`@errortracking/shared` workspace 의존 추가). 현재 README 자리만 있음
+- [x] **대시보드 스캐폴딩** — Vite 7 + React 19 + TS + react-router 7, `@errortracking/shared` workspace 의존. `/api`는 vite dev 프록시로 same-origin 연결(세션 쿠키가 cross-origin 없이 동작 — CORS 표면 최소화), vitest 포함 — 2026-06-12 sunmin
+- [x] **디자인 시스템** — "유틸리테리언 터미널 콘솔" 테마: 다크 블루(#0b0e14) + 시그널 앰버(#ffb224) 액센트, IBM Plex Sans KR(UI) + IBM Plex Mono(데이터), level별 색상 토큰(fatal/error/warning/info/debug), 그리드 배경 텍스처, 블링킹 커서 워드마크 `errtrack_` (`src/styles.css` CSS 변수) — 2026-06-12 sunmin
 
 ## 1. 대시보드 기반 + 이슈 목록 (todo STEP 1) — M1 마일스톤
 
-- [ ] **로그인/세션** — 🔗 백엔드 인증 API 대기
-- [ ] **프로젝트 화면** — 목록/생성, 설정에서 DSN 표시(복사 버튼)
-- [ ] **이슈 목록 (기본)** — 제목/level/발생 수/last_seen, 정렬 3종(최근·빈도·첫 발생), 상태 필터 → 백엔드 이슈 목록 API와 연동 시 **M1 달성**
+- [x] **로그인/세션 게이트** — `AuthProvider`(앱 로드 시 `/api/auth/me` 확인) + 보호 라우트(`ProtectedLayout`), 로그인 폼(401 "비밀번호 올바르지 않음" / 429 "시도 초과" 구분 표시), 상단바 사용자 표시 + 로그아웃 (`src/auth.tsx`, `pages/LoginPage.tsx`) — 2026-06-12 sunmin
+- [x] **프로젝트 화면** — 목록(카드 그리드) / 인라인 생성 폼 / **DSN 표시 + 클립보드 복사 버튼**(복사됨 피드백), 플랫폼 칩 (`pages/ProjectsPage.tsx`) — 2026-06-12 sunmin
+- [x] **이슈 목록 화면** — level 색상 바·배지, mono 에러 제목 + culprit, 발생 수·영향 유저(k 축약), last_seen 상대 시간, **재발 칩**, 정렬 3종 select, 상태 필터 세그먼트(미해결/해결됨/무시됨/전체), 페이지네이션, 빈 상태 안내 (`pages/IssuesPage.tsx`, `lib/format.ts`) — 2026-06-12 sunmin
+- [x] **테스트** — format 유틸 단위 테스트 7개(timeAgo 한국어 상대시간, formatCount k/m 축약) → 워크스페이스 총 81개 — 2026-06-12 sunmin
+- 검증(브라우저 e2e): 미인증 접근 → /login 리다이렉트 → 로그인 → 프로젝트 목록(DSN 표시) → 이슈 목록(실데이터 3건: level/재발 칩/카운트/상대시간 렌더) → 상태 필터 전환(해결됨=빈 상태) 전부 확인. `pnpm build` 통과(gzip 77KB)
+- ✅ **M1 마일스톤 완전 달성** — 에러 전송 → 그룹핑 → 대시보드 표시 루프 완성 — 2026-06-12
 
 ## 2. JS SDK 기본 캡처 (todo STEP 2) — M2 마일스톤
 
