@@ -59,13 +59,13 @@
 - [ ] 🔗 프론트엔드: 이슈 목록 화면 연동 (프론트 트랙 대기)
 - [x] ✅ **마일스톤 M1 (백엔드 측)**: curl로 보낸 에러가 이슈로 묶여 목록 API에 나온다 — 2026-06-12 달성
 
-## STEP 5. 이슈 상세 API (Phase 3)
+## STEP 5. 이슈 상세 API (Phase 3) ✅
 
-- [ ] 이슈 상세 조회 API — 스택 트레이스, 컨텍스트 포함
-- [ ] 동일 이슈 내 개별 이벤트 페이지네이션 API
-- [ ] 원본 JSON 반환 API
-- [ ] 상태 변경 API — Resolve / Ignore / Reopen
-- [ ] 일괄 상태 변경 API (여러 이슈 선택)
+- [x] 이슈 상세 조회 API — `GET /api/issues/:id`
+- [x] 동일 이슈 내 개별 이벤트 페이지네이션 API — `GET /api/issues/:id/events?page&limit` (최신순, 기본 1건씩)
+- [x] 원본 JSON 반환 API — events 응답에 payload(원본) 포함
+- [x] 상태 변경 API — `PATCH /api/issues/:id` Resolve/Ignore/Reopen, resolve 시 regression 해제
+- [x] 일괄 상태 변경 API — `PATCH /api/issues` { ids(≤100), status }
 - [x] **재발 감지** — resolved 이슈에 새 이벤트 → unresolved 전환 + regression 플래그 — STEP 3 이슈 upsert에서 조기 구현
 - [ ] (선택) `comments` / `activity` — 이슈 메모, 상태 변경 이력
 

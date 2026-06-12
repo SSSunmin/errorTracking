@@ -65,10 +65,13 @@
 - 검증(e2e): 시나리오 15종 통과 — 로그인 성공/실패, 쿠키 유무별 401/200, 프로젝트 목록·생성·삭제, 정렬(빈도순 4→2→1)·필터(resolved=0)·페이지네이션(limit2 page2=1건)·잘못된 status 400, 로그아웃 후 401
 - ✅ **M1 마일스톤 (백엔드 측) 달성** — curl 에러 → 이슈 그룹핑 → 목록 API 노출. 프론트 이슈 목록 화면 연동 시 M1 완전 달성 — 2026-06-12
 
-## 6. 이슈 상세·집계·검색 (todo STEP 5~6) — 🎯 다음 작업
+## 6. 이슈 상세·집계·검색 (todo STEP 5~6)
 
-- [ ] **이슈 상세 API** — 상세 조회, 이벤트 페이지네이션, 원본 JSON, 상태 변경(단건/일괄). 재발 감지는 §4에서 구현 완료
-- [ ] **집계** — 시간대별 발생 버킷(그래프), 영향 유저 distinct, 태그 분포(browser/OS/release)
+- [x] **이슈 상세 조회 API** — `GET /api/issues/:id` (목록 필드 + projectId/fingerprint) — 2026-06-12 sunmin
+- [x] **이벤트 페이지네이션 API** — `GET /api/issues/:id/events?page&limit`: 최신순, payload(원본 JSON) 포함, 기본 1건씩(상세 화면 넘겨보기용), 페이지네이션 파싱은 `lib/pagination.ts`로 공통화(+테스트 5개) — 2026-06-12 sunmin
+- [x] **상태 변경 API** — `PATCH /api/issues/:id` { status }: Resolve/Ignore/Reopen, **resolve 시 regression 플래그 자동 해제**. 검증: ISSUE_STATUSES 외 값 400 — 2026-06-12 sunmin
+- [x] **일괄 상태 변경 API** — `PATCH /api/issues` { ids, status }: 1~100건 양의 정수 배열 검증(초과/비정수 400) — 2026-06-12 sunmin
+- [ ] 🎯 **집계** — 시간대별 발생 버킷(그래프), 태그 분포(browser/OS/release) — 다음 작업(Phase 4)
 - [ ] **검색** — 텍스트 + 태그 문법(`browser:Chrome`), level/environment/release 필터
 
 ## 7. 알림 (todo STEP 7)
