@@ -1,9 +1,26 @@
 import type { FastifyInstance } from "fastify";
-import { and, count, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
-import { ISSUE_STATUSES, type IssueStatus } from "@errortracking/shared";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  sql,
+  type SQL,
+} from "drizzle-orm";
+import {
+  ISSUE_STATUSES,
+  SEVERITY_LEVELS,
+  type IssueStatus,
+  type Severity,
+} from "@errortracking/shared";
 import { db } from "../db/client";
 import { events, issues, projects } from "../db/schema";
+import { fillBuckets, toDistribution, WINDOWS, windowStartEpoch } from "../lib/buckets";
 import { parsePagination } from "../lib/pagination";
+import { parseSearch, type SearchFilter } from "../lib/search";
 import { requireAuth } from "../lib/session";
 
 /** 정렬 키 → 컬럼 매핑: 최근 발생순 / 첫 발생순 / 발생 빈도순 */
@@ -23,6 +40,9 @@ interface IssueListQuery {
   sort?: string;
   page?: string;
   limit?: string;
+  /** free-text + `key:value` 태그 검색 */
+  q?: string;
+  level?: string;
 }
 
 export function registerIssueRoutes(app: FastifyInstance): void {
@@ -49,6 +69,14 @@ export function registerIssueRoutes(app: FastifyInstance): void {
         status = q.status as IssueStatus;
       }
 
+      let level: Severity | undefined;
+      if (q.level !== undefined) {
+        if (!(SEVERITY_LEVELS as readonly string[]).includes(q.level)) {
+          return reply.code(400).send({ error: "invalid level" });
+        }
+        level = q.level as Severity;
+      }
+
       const sortKey: SortKey =
         q.sort !== undefined && q.sort in SORT_COLUMNS
           ? (q.sort as SortKey)
@@ -56,9 +84,14 @@ export function registerIssueRoutes(app: FastifyInstance): void {
 
       const { page, limit, offset } = parsePagination(q);
 
-      const where: SQL | undefined = status
-        ? and(eq(issues.projectId, projectId), eq(issues.status, status))
-        : eq(issues.projectId, projectId);
+      // WHERE 조립 — 상태/level + 제목 텍스트 + 태그(이벤트 EXISTS) 필터
+      const conds: SQL[] = [eq(issues.projectId, projectId)];
+      if (status) conds.push(eq(issues.status, status));
+      if (level) conds.push(eq(issues.level, level));
+      const parsed = parseSearch(q.q);
+      if (parsed.text) conds.push(ilike(issues.title, `%${parsed.text}%`));
+      for (const f of parsed.filters) conds.push(tagExists(f));
+      const where = and(...conds);
 
       const [items, [total]] = await Promise.all([
         db
@@ -82,8 +115,10 @@ export function registerIssueRoutes(app: FastifyInstance): void {
         db.select({ value: count() }).from(issues).where(where),
       ]);
 
+      const sparklines = await sparklinesFor(items.map((i) => i.id));
+
       return reply.send({
-        items,
+        items: items.map((i) => ({ ...i, sparkline: sparklines[i.id] ?? [] })),
         total: total!.value,
         page,
         limit,
@@ -93,7 +128,7 @@ export function registerIssueRoutes(app: FastifyInstance): void {
     },
   );
 
-  // 이슈 상세 — 목록 필드 + projectId
+  // 이슈 상세
   app.get<{ Params: { issueId: string } }>(
     "/api/issues/:issueId",
     { preHandler: requireAuth },
@@ -101,6 +136,72 @@ export function registerIssueRoutes(app: FastifyInstance): void {
       const issue = await findIssue(req.params.issueId);
       if (!issue) return reply.code(404).send({ error: "unknown issue" });
       return reply.send(issue);
+    },
+  );
+
+  // 발생 추이 — 시간대별 버킷 (window=24h|14d)
+  app.get<{ Params: { issueId: string }; Querystring: { window?: string } }>(
+    "/api/issues/:issueId/stats",
+    { preHandler: requireAuth },
+    async (req, reply) => {
+      const issue = await findIssue(req.params.issueId);
+      if (!issue) return reply.code(404).send({ error: "unknown issue" });
+
+      const windowKey = req.query.window === "14d" ? "14d" : "24h";
+      const config = WINDOWS[windowKey]!;
+      const startEpoch = windowStartEpoch(config, Date.now());
+      const idxExpr = sql<number>`floor((extract(epoch from ${events.timestamp}) - ${startEpoch}) / ${config.bucketSec})::int`;
+
+      // GROUP BY/ORDER BY는 출력 컬럼 순번(idx=1)으로 — 파라미터 표현식 재바인딩 회피
+      const rows = await db
+        .select({ idx: idxExpr, count: sql<number>`count(*)::int` })
+        .from(events)
+        .where(
+          and(
+            eq(events.issueId, issue.id),
+            gte(events.timestamp, new Date(startEpoch * 1000)),
+          ),
+        )
+        .groupBy(sql`1`)
+        .orderBy(sql`1`);
+
+      return reply.send({
+        window: windowKey,
+        bucketSec: config.bucketSec,
+        startEpoch,
+        buckets: fillBuckets(rows, config.count),
+      });
+    },
+  );
+
+  // 태그 분포 — browser/os/release/environment별 비율
+  app.get<{ Params: { issueId: string } }>(
+    "/api/issues/:issueId/tags",
+    { preHandler: requireAuth },
+    async (req, reply) => {
+      const issue = await findIssue(req.params.issueId);
+      if (!issue) return reply.code(404).send({ error: "unknown issue" });
+
+      const exprs: Record<string, SQL<string | null>> = {
+        browser: sql`${events.payload} #>> '{contexts,browser,name}'`,
+        os: sql`${events.payload} #>> '{contexts,os,name}'`,
+        release: sql`${events.release}`,
+        environment: sql`${events.environment}`,
+      };
+
+      const out: Record<
+        string,
+        { value: string; count: number; percent: number }[]
+      > = {};
+      for (const [key, expr] of Object.entries(exprs)) {
+        const rows = await db
+          .select({ value: expr, count: sql<number>`count(*)::int` })
+          .from(events)
+          .where(eq(events.issueId, issue.id))
+          .groupBy(expr);
+        out[key] = toDistribution(rows);
+      }
+      return reply.send(out);
     },
   );
 
@@ -195,6 +296,66 @@ export function registerIssueRoutes(app: FastifyInstance): void {
       .returning({ id: issues.id });
     return reply.send({ updated: updated.length });
   });
+}
+
+/** 태그 검색 → 해당 이벤트가 존재하는 이슈만 (EXISTS 상관 서브쿼리) */
+function tagExists(filter: SearchFilter): SQL {
+  const { key, value } = filter;
+  let match: SQL;
+  switch (key) {
+    case "browser":
+      match = sql`ev.payload #>> '{contexts,browser,name}' = ${value}`;
+      break;
+    case "os":
+      match = sql`ev.payload #>> '{contexts,os,name}' = ${value}`;
+      break;
+    case "release":
+      match = sql`ev.release = ${value}`;
+      break;
+    case "environment":
+      match = sql`ev.environment = ${value}`;
+      break;
+    default:
+      // 커스텀 태그 — 키를 파라미터로 안전하게 바인딩
+      match = sql`ev.payload #>> ARRAY['tags', ${key}] = ${value}`;
+  }
+  return sql`EXISTS (SELECT 1 FROM events ev WHERE ev.issue_id = ${issues.id} AND ${match})`;
+}
+
+/** 페이지 이슈들의 최근 24시간 시간대별 발생 수 (스파크라인용) */
+async function sparklinesFor(ids: number[]): Promise<Record<number, number[]>> {
+  if (ids.length === 0) return {};
+  const config = WINDOWS["24h"]!;
+  const startEpoch = windowStartEpoch(config, Date.now());
+  const idxExpr = sql<number>`floor((extract(epoch from ${events.timestamp}) - ${startEpoch}) / ${config.bucketSec})::int`;
+
+  const rows = await db
+    .select({
+      issueId: events.issueId,
+      idx: idxExpr,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(events)
+    .where(
+      and(
+        inArray(events.issueId, ids),
+        gte(events.timestamp, new Date(startEpoch * 1000)),
+      ),
+    )
+    // 출력 컬럼 순번(issueId=1, idx=2)으로 GROUP BY — 파라미터 재바인딩 회피
+    .groupBy(sql`1`, sql`2`);
+
+  const byIssue = new Map<number, { idx: number; count: number }[]>();
+  for (const row of rows) {
+    const arr = byIssue.get(row.issueId) ?? [];
+    arr.push({ idx: row.idx, count: row.count });
+    byIssue.set(row.issueId, arr);
+  }
+  const out: Record<number, number[]> = {};
+  for (const id of ids) {
+    out[id] = fillBuckets(byIssue.get(id) ?? [], config.count);
+  }
+  return out;
 }
 
 async function findIssue(idParam: string) {

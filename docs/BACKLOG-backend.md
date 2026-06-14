@@ -71,8 +71,11 @@
 - [x] **이벤트 페이지네이션 API** — `GET /api/issues/:id/events?page&limit`: 최신순, payload(원본 JSON) 포함, 기본 1건씩(상세 화면 넘겨보기용), 페이지네이션 파싱은 `lib/pagination.ts`로 공통화(+테스트 5개) — 2026-06-12 sunmin
 - [x] **상태 변경 API** — `PATCH /api/issues/:id` { status }: Resolve/Ignore/Reopen, **resolve 시 regression 플래그 자동 해제**. 검증: ISSUE_STATUSES 외 값 400 — 2026-06-12 sunmin
 - [x] **일괄 상태 변경 API** — `PATCH /api/issues` { ids, status }: 1~100건 양의 정수 배열 검증(초과/비정수 400) — 2026-06-12 sunmin
-- [ ] 🎯 **집계** — 시간대별 발생 버킷(그래프), 태그 분포(browser/OS/release) — 다음 작업(Phase 4)
-- [ ] **검색** — 텍스트 + 태그 문법(`browser:Chrome`), level/environment/release 필터
+- [x] **집계: 발생 추이** — `GET /api/issues/:id/stats?window=24h|14d`: 시간대별 버킷(24시간=시간단위 24개 / 14일=일단위 14개). DB에서 floor 버킷 인덱스로 GROUP BY(ordinal 순번 — 파라미터 재바인딩 회피), 빈 버킷은 `fillBuckets`로 0 채움 (`lib/buckets.ts`) — 2026-06-15 sunmin
+- [x] **집계: 태그 분포** — `GET /api/issues/:id/tags`: browser/os/release/environment별 value→count→percent(내림차순). `toDistribution` (`lib/buckets.ts`) — 2026-06-15 sunmin
+- [x] **목록 스파크라인** — 이슈 목록 응답 각 행에 최근 24시간 시간대별 발생 수 배열(`sparkline`). 페이지 이슈 id들에 대해 단일 GROUP BY 쿼리 — 2026-06-15 sunmin
+- [x] **검색 + 필터** — `?q=` free-text(제목 ILIKE) + `key:value` 태그 검색(`parseSearch`): browser/os/release/environment는 고정 경로 EXISTS, 커스텀 태그는 `payload #>> ARRAY['tags', $key]`(키도 파라미터 바인딩 — 인젝션 차단). `?level=` 필터(잘못된 값 400) (`lib/search.ts`) — 2026-06-15 sunmin
+- 검증(e2e): stats 24버킷·합 일치, tags 분포 percent, q=undefined→2건, browser:Chrome→1·Safari→0, 혼합(텍스트+태그)→1, level=warning→1, level=bogus→400, 스파크라인 24버킷. 단위 테스트 13개(parseSearch 6·buckets 7) → api 56개
 
 ## 7. 알림 (todo STEP 7)
 
