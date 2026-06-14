@@ -69,16 +69,17 @@
 - [x] 민감정보 자동 스크러빙 — shared `scrubSensitive` 공유(서버 2차와 동일 로직)
 - [x] `sampleRate` 옵션 — `shouldSample` 순수 함수
 
-## STEP 4-C. 대시보드 — 데이터 심화 화면 (Phase 4)
+## STEP 4-C. 대시보드 — 데이터 심화 화면 (Phase 4) — 진행 중
 
-- [ ] Breadcrumbs 타임라인 표시
-- [ ] 컨텍스트 패널 — user, browser, os, device, request
-- [ ] 태그 분포 — browser별 %, release별 % 등 (🔗 백엔드: 집계 API)
-- [ ] 발생 추이 그래프 — 24시간 / 14일
-- [ ] 이슈 목록 행에 스파크라인 + 발생 수 + 영향 유저 수
-- [ ] 검색 — 메시지/예외타입 텍스트, 태그 검색 (`browser:Chrome` 문법)
-- [ ] 필터 확장 — level, environment, release
-- [ ] ✅ **마일스톤 M4**: 에러 직전 행적과 환경 정보가 함께 보인다
+- [x] Breadcrumbs 타임라인 표시 — 최신순, 카테고리 라벨·색상, 시각 (`lib/breadcrumbs.ts`)
+- [x] 컨텍스트 패널 — user, browser, os, device, request (STEP 3에서 구현, device는 4-A 데이터로 채워짐)
+- [x] 이벤트 태그 표시 — 이슈 상세에 tag pill (분포 집계는 아래 별도)
+- [ ] 태그 분포 — browser별 %, release별 % 등 (🔗 백엔드: 집계 API §6)
+- [ ] 발생 추이 그래프 — 24시간 / 14일 (🔗 백엔드: 집계 API §6)
+- [ ] 이슈 목록 행에 스파크라인 (🔗 백엔드: 집계 API §6)
+- [ ] 검색 — 메시지/예외타입 텍스트, 태그 검색 (`browser:Chrome` 문법) (🔗 백엔드 §6)
+- [ ] 필터 확장 — level, environment, release (🔗 백엔드 §6)
+- [x] ✅ **마일스톤 M4**: 에러 직전 행적과 환경 정보가 함께 보인다 — 2026-06-15 달성 (Breadcrumbs 타임라인 + 컨텍스트/태그). 그래프·검색은 백엔드 집계 API 후속
 
 ## STEP 5. 알림 설정 UI (Phase 5)
 

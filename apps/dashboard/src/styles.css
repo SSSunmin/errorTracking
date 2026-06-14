@@ -814,6 +814,73 @@ a.back-link:hover {
   white-space: nowrap;
 }
 
+/* ── Breadcrumbs 타임라인 ───────────────── */
+.crumb-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.crumb {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.crumb:last-child {
+  border-bottom: none;
+}
+
+.crumb-cat {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.crumb-text {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crumb-time {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+/* ── 태그 ───────────────────────────────── */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-pill {
+  display: inline-flex;
+  font-family: var(--mono);
+  font-size: 12px;
+  border: 1px solid var(--border-strong);
+}
+
+.tag-pill .tag-k {
+  padding: 2px 8px;
+  color: var(--text-faint);
+  border-right: 1px solid var(--border-strong);
+}
+
+.tag-pill .tag-v {
+  padding: 2px 8px;
+  color: var(--accent);
+}
+
 .raw-json {
   margin-bottom: 14px;
 }

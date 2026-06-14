@@ -52,7 +52,10 @@
 - [x] **SDK 프라이버시** — `beforeSend` 훅(null 반환 시 취소, 오류 시 원본 유지), 민감정보 자동 스크러빙(shared `scrubSensitive`로 서버 2차와 **동일 로직 공유** — `apps/api`의 scrub를 `packages/shared`로 이동), `sampleRate`(`shouldSample` 순수 함수) — 2026-06-15 sunmin
 - [x] **테스트** — SDK 신규 30개(scope/breadcrumbs/sampling/transport: 링 버퍼·셀렉터·백오프·게이트·429 pending·beacon) + scrub 이동 → 워크스페이스 총 154개 — 2026-06-15 sunmin
 - 검증(브라우저 e2e): 데모 ⑤ 버튼 → DB에서 breadcrumbs 4종(ui.click·console.log·console.warn→warning·http) + scope(user demo-user-42, tag feature=checkout) + device(screen_width 1536) 정확 수집 확인
-- [ ] 🎯 **대시보드 심화 화면** — Breadcrumbs 타임라인(다음), 태그 분포·추이 그래프·스파크라인·검색(백엔드 집계 API 필요 — 백엔드 §6)
+- [x] **대시보드 Breadcrumbs 타임라인** — 이슈 상세에 에러 직전 행적 최신순 표시(카테고리 라벨·색상: CLICK/NAV/HTTP/LOG/WARN/ERROR, http 4xx+는 빨강, 시각 HH:MM:SS). 이벤트 태그 pill 표시. 표시 로직 `lib/breadcrumbs.ts`(+테스트 8개) (`pages/IssueDetailPage.tsx`) — 2026-06-15 sunmin
+- 검증(브라우저 e2e): 이슈 상세에서 Breadcrumbs 4종(HTTP→WARN→LOG→CLICK 최신순) + 태그(feature=checkout) + 컨텍스트(device 포함) 렌더 확인. 워크스페이스 테스트 총 162개
+- ✅ **M4 마일스톤 달성** — 에러 직전 행적·환경 정보가 대시보드에 함께 표시 — 2026-06-15
+- [ ] 🎯 **집계 의존 화면** — 태그 분포·추이 그래프·스파크라인·검색·필터 확장 (백엔드 집계 API §6 선행 필요)
 
 ## 5. 알림 설정 UI (todo STEP 5)
 

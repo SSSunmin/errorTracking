@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type {
+  Breadcrumb,
   ExceptionValue,
   IssueStatus,
   Severity,
 } from "@errortracking/shared";
 import { api } from "../api/client";
 import type { IssueDetail, StoredEvent } from "../api/types";
+import { crumbStyle, crumbText, crumbTime } from "../lib/breadcrumbs";
 import { frameLocation, segmentFrames } from "../lib/frames";
 import { formatCount, timeAgo } from "../lib/format";
 
@@ -176,6 +178,24 @@ function EventView({ event }: { event: StoredEvent }) {
         <ExceptionView key={i} exception={exc} />
       ))}
 
+      {payload.breadcrumbs?.values && payload.breadcrumbs.values.length > 0 && (
+        <BreadcrumbsTimeline crumbs={payload.breadcrumbs.values} />
+      )}
+
+      {payload.tags && Object.keys(payload.tags).length > 0 && (
+        <section className="card">
+          <h2 className="card-title">태그</h2>
+          <div className="tag-list">
+            {Object.entries(payload.tags).map(([k, v]) => (
+              <span className="tag-pill" key={k}>
+                <span className="tag-k">{k}</span>
+                <span className="tag-v">{v}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="card">
         <h2 className="card-title">컨텍스트</h2>
         <div className="ctx-grid">
@@ -272,6 +292,32 @@ function CollapsedFrames({
           </div>
         ))}
     </div>
+  );
+}
+
+function BreadcrumbsTimeline({ crumbs }: { crumbs: Breadcrumb[] }) {
+  // 에러 직전이 먼저 보이도록 최신순 표시
+  const ordered = [...crumbs].reverse();
+  return (
+    <section className="card">
+      <h2 className="card-title">Breadcrumbs · 에러 직전 행적 {crumbs.length}개</h2>
+      <ol className="crumb-list">
+        {ordered.map((crumb, i) => {
+          const style = crumbStyle(crumb);
+          return (
+            <li className="crumb" key={i}>
+              <span className="crumb-cat" style={{ color: style.color }}>
+                {style.label}
+              </span>
+              <span className="crumb-text" title={crumbText(crumb)}>
+                {crumbText(crumb)}
+              </span>
+              <span className="crumb-time">{crumbTime(crumb.timestamp)}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
