@@ -1,10 +1,10 @@
 import {
   MAX_BREADCRUMBS,
   SEVERITY_LEVELS,
+  scrubSensitive,
   type EventPayload,
   type Severity,
 } from "@errortracking/shared";
-import { scrubSensitive } from "./scrub";
 
 /** IP 주소 기록 정책 — 기본 미기록(개인정보 최소화), env로 활성화 */
 const RECORD_IP = process.env.RECORD_IP === "true";

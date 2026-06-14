@@ -1,4 +1,8 @@
-import type { BrowserContext, OsContext } from "@errortracking/shared";
+import type {
+  BrowserContext,
+  DeviceContext,
+  OsContext,
+} from "@errortracking/shared";
 
 /** UA 문자열에서 브라우저 이름/버전 추출 (주요 브라우저만, 정밀 파싱은 비범위) */
 export function browserFromUa(ua: string): BrowserContext | undefined {
@@ -32,4 +36,16 @@ export function osFromUa(ua: string): OsContext | undefined {
   if (m) return { name: "Android", version: m[1] };
   if (/Linux/.test(ua)) return { name: "Linux" };
   return undefined;
+}
+
+/** 화면 해상도/메모리 등 device 정보 — 브라우저 전역에서 수집(없으면 undefined) */
+export function deviceContext(): DeviceContext | undefined {
+  if (typeof screen === "undefined") return undefined;
+  const device: DeviceContext = {};
+  if (screen.width) device.screen_width_pixels = screen.width;
+  if (screen.height) device.screen_height_pixels = screen.height;
+  // navigator.deviceMemory(GB) — 지원 브라우저만
+  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  if (typeof mem === "number") device.memory_size = mem * 1024 * 1024 * 1024;
+  return Object.keys(device).length > 0 ? device : undefined;
 }

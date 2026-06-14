@@ -46,10 +46,13 @@
 
 ## 4. 데이터 심화 (todo STEP 4-A/B/C) — M4 마일스톤
 
-- [ ] **SDK Breadcrumbs** — 링 버퍼 100개, 자동 수집 4종(DOM 클릭·페이지 이동·fetch/XHR·console) + `addBreadcrumb()`
-- [ ] **SDK 컨텍스트** — `setUser`/`setTag`/`setExtra`, scope(이후 이벤트 자동 첨부), device 정보
-- [ ] **SDK 전송 안정성·프라이버시** — 지수 백오프 재시도, `sendBeacon`, 429 Retry-After 준수, `beforeSend` 훅, 민감정보 자동 스크러빙, sampleRate(선택)
-- [ ] **대시보드 심화 화면** — Breadcrumbs 타임라인, 컨텍스트 패널, 태그 분포, 추이 그래프(24h/14d), 목록 스파크라인, 검색(`browser:Chrome` 문법)·필터 확장
+- [x] **SDK Breadcrumbs** — 링 버퍼 100개(`breadcrumbs.ts`), 자동 수집 4종(`instrument.ts`): DOM 클릭(capture 단계, 셀렉터 `tag#id.class`)·라우팅(pushState/popstate)·fetch/XHR(메서드·URL·status)·console(warn→warning 매핑). 각 패치 try/catch로 앱 영향 차단. `addBreadcrumb()` 수동 API — 2026-06-15 sunmin
+- [x] **SDK 컨텍스트 + scope** — `setUser`/`setTag`/`setExtra`(`scope.ts` Scope, snapshot은 복사본), 설정값이 이후 모든 이벤트 자동 첨부. device 컨텍스트(화면 해상도·deviceMemory) — 2026-06-15 sunmin
+- [x] **SDK 전송 안정성** — 지수 백오프 재시도(5xx/네트워크, 최대 3회, `backoffDelay`), `sendBeacon` flush(pagehide/visibilitychange), 429 `Retry-After` 준수(`RateLimitGate`, 정지 중 pending 적재) (`transport.ts`) — 2026-06-15 sunmin
+- [x] **SDK 프라이버시** — `beforeSend` 훅(null 반환 시 취소, 오류 시 원본 유지), 민감정보 자동 스크러빙(shared `scrubSensitive`로 서버 2차와 **동일 로직 공유** — `apps/api`의 scrub를 `packages/shared`로 이동), `sampleRate`(`shouldSample` 순수 함수) — 2026-06-15 sunmin
+- [x] **테스트** — SDK 신규 30개(scope/breadcrumbs/sampling/transport: 링 버퍼·셀렉터·백오프·게이트·429 pending·beacon) + scrub 이동 → 워크스페이스 총 154개 — 2026-06-15 sunmin
+- 검증(브라우저 e2e): 데모 ⑤ 버튼 → DB에서 breadcrumbs 4종(ui.click·console.log·console.warn→warning·http) + scope(user demo-user-42, tag feature=checkout) + device(screen_width 1536) 정확 수집 확인
+- [ ] 🎯 **대시보드 심화 화면** — Breadcrumbs 타임라인(다음), 태그 분포·추이 그래프·스파크라인·검색(백엔드 집계 API 필요 — 백엔드 §6)
 
 ## 5. 알림 설정 UI (todo STEP 5)
 

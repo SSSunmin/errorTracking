@@ -3,3 +3,4 @@ export * from "./dsn";
 export * from "./event";
 export * from "./event-id";
 export * from "./issue";
+export * from "./scrub";

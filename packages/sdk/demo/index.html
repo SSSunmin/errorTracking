@@ -37,9 +37,10 @@
     <button id="promise-reject">② Promise 거부 (onunhandledrejection)</button>
     <button id="chained">③ cause 체인 에러 (onerror)</button>
     <button id="capture-message">④ captureMessage (수동)</button>
+    <button id="breadcrumb-trail">⑤ 행적 남기고 에러 (console+fetch+click→throw)</button>
     <div id="status">status: -</div>
     <script type="module">
-      import { init, captureMessage } from "../src/index";
+      import { init, captureMessage, setUser, setTag } from "../src/index";
 
       const status = document.getElementById("status");
       const dsn = new URLSearchParams(location.search).get("dsn");
@@ -47,6 +48,9 @@
         status.textContent = "status: DSN 없음 — ?dsn= 필요";
       } else {
         init({ dsn, release: "demo@0.1.0", environment: "development" });
+        // scope — 이후 모든 이벤트에 자동 첨부
+        setUser({ id: "demo-user-42", email: "demo@local.dev" });
+        setTag("feature", "checkout");
         status.textContent = "status: SDK initialized";
       }
 
@@ -74,6 +78,22 @@
         const id = captureMessage("demo manual message", "warning");
         status.textContent = `status: captureMessage 전송 (${id})`;
       });
+
+      document
+        .getElementById("breadcrumb-trail")
+        .addEventListener("click", async () => {
+          console.log("checkout 시작");
+          console.warn("재고 부족 경고");
+          try {
+            await fetch("/nonexistent-endpoint-404");
+          } catch {
+            /* 무시 */
+          }
+          status.textContent = "status: 행적 쌓은 뒤 에러 발생";
+          // 행적(클릭·console·fetch)이 쌓인 상태에서 throw
+          const data = null;
+          data.items.forEach(() => {});
+        });
     </script>
   </body>
 </html>

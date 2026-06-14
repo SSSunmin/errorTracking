@@ -46,28 +46,28 @@
 - [x] 이슈 목록 → 일괄 작업 — 체크박스 선택 + 해결/무시 일괄 버튼
 - [x] ✅ **마일스톤 M3**: 이슈 하나를 화면에서 끝까지 분석·처리할 수 있다 — 2026-06-12 달성 (브라우저 e2e)
 
-## STEP 4-A. SDK — Breadcrumbs + 컨텍스트 (Phase 4)
+## STEP 4-A. SDK — Breadcrumbs + 컨텍스트 (Phase 4) ✅
 
-- [ ] Breadcrumbs 링 버퍼 (최근 100개)
-- [ ] breadcrumb 스키마 — `timestamp`, `type`, `category`, `message`, `level`, `data`
-- [ ] 자동 수집: DOM 클릭/입력 (요소 셀렉터 기록)
-- [ ] 자동 수집: 페이지 이동 (history pushState/popstate)
-- [ ] 자동 수집: `fetch` / `XHR` (URL, 메서드, 상태코드)
-- [ ] 자동 수집: `console.log/warn/error` 호출
-- [ ] 수동 추가 API — `addBreadcrumb({...})`
-- [ ] `setUser()` / `setTag()` / `setExtra()` API
-- [ ] `scope` 개념 — 설정한 컨텍스트가 이후 모든 이벤트에 자동 첨부
-- [ ] device 컨텍스트 — 기종, 화면 해상도, 메모리 (가능한 범위)
-- [ ] (선택) `console.error` 자동 캡처
+- [x] Breadcrumbs 링 버퍼 (최근 100개) — `breadcrumbs.ts` BreadcrumbBuffer
+- [x] breadcrumb 스키마 — `timestamp`, `type`, `category`, `message`, `level`, `data`
+- [x] 자동 수집: DOM 클릭 (요소 셀렉터 기록, capture 단계)
+- [x] 자동 수집: 페이지 이동 (history pushState/popstate)
+- [x] 자동 수집: `fetch` / `XHR` (URL, 메서드, 상태코드)
+- [x] 자동 수집: `console.log/warn/error` 호출 (warn→warning 레벨 매핑)
+- [x] 수동 추가 API — `addBreadcrumb({...})`
+- [x] `setUser()` / `setTag()` / `setExtra()` API — `scope.ts`
+- [x] `scope` 개념 — 설정한 컨텍스트가 이후 모든 이벤트에 자동 첨부
+- [x] device 컨텍스트 — 화면 해상도, 메모리(deviceMemory)
+- (선택) `console.error` 자동 캡처 — console 후킹에 포함됨
 
-## STEP 4-B. SDK — 전송 안정성 + 프라이버시 (Phase 4)
+## STEP 4-B. SDK — 전송 안정성 + 프라이버시 (Phase 4) ✅
 
-- [ ] 전송 실패 시 재시도 (지수 백오프)
-- [ ] 페이지 이탈 시 잔여 이벤트 전송 (`navigator.sendBeacon`)
-- [ ] 서버 `429 + Retry-After` 수신 시 전송 중단 (rate limit 준수)
-- [ ] `beforeSend` 훅 — 전송 전 이벤트 수정/필터링
-- [ ] 민감정보 자동 스크러빙 — 비밀번호/토큰/카드번호 패턴 마스킹
-- [ ] (선택) `sampleRate` 옵션
+- [x] 전송 실패 시 재시도 (지수 백오프) — 5xx/네트워크 오류, 최대 3회
+- [x] 페이지 이탈 시 잔여 이벤트 전송 (`navigator.sendBeacon`) — pagehide/visibilitychange flush
+- [x] 서버 `429 + Retry-After` 수신 시 전송 중단 — RateLimitGate, pending 적재
+- [x] `beforeSend` 훅 — 전송 전 이벤트 수정/필터링 (null 반환 시 취소)
+- [x] 민감정보 자동 스크러빙 — shared `scrubSensitive` 공유(서버 2차와 동일 로직)
+- [x] `sampleRate` 옵션 — `shouldSample` 순수 함수
 
 ## STEP 4-C. 대시보드 — 데이터 심화 화면 (Phase 4)
 

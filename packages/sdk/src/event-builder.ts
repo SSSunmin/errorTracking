@@ -1,9 +1,12 @@
 import {
   generateEventId,
+  type Breadcrumb,
+  type DeviceContext,
   type EventPayload,
   type ExceptionValue,
   type MechanismType,
   type Severity,
+  type UserContext,
 } from "@errortracking/shared";
 import { browserFromUa, osFromUa } from "./context";
 import { markInApp, parseStack } from "./stacktrace";
@@ -23,6 +26,13 @@ export interface BuildContext {
   ua?: string;
   release?: string;
   environment?: string;
+  device?: DeviceContext;
+  /** scope에서 누적된 컨텍스트 */
+  user?: UserContext;
+  tags?: Record<string, string>;
+  extra?: Record<string, unknown>;
+  /** 링 버퍼에서 가져온 행적 */
+  breadcrumbs?: Breadcrumb[];
 }
 
 export function buildExceptionEvent(
@@ -63,6 +73,16 @@ function baseEvent(ctx: BuildContext, level: Severity): EventPayload {
     const browser = browserFromUa(ctx.ua);
     const os = osFromUa(ctx.ua);
     if (browser || os) payload.contexts = { browser, os };
+  }
+  if (ctx.device) {
+    payload.contexts = { ...payload.contexts, device: ctx.device };
+  }
+  // scope에서 누적된 컨텍스트 병합
+  if (ctx.user) payload.user = ctx.user;
+  if (ctx.tags && Object.keys(ctx.tags).length) payload.tags = ctx.tags;
+  if (ctx.extra && Object.keys(ctx.extra).length) payload.extra = ctx.extra;
+  if (ctx.breadcrumbs && ctx.breadcrumbs.length) {
+    payload.breadcrumbs = { values: ctx.breadcrumbs };
   }
   return payload;
 }
