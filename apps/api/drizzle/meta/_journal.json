@@ -15,6 +15,13 @@
       "when": 1781253306915,
       "tag": "0001_eager_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781479584958,
+      "tag": "0002_early_forgotten_one",
+      "breakpoints": true
     }
   ]
 }

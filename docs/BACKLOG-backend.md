@@ -96,18 +96,17 @@
 - [x] **보안 수정 ④: 세션 쿠키 secure 플래그** — `NODE_ENV=production` 또는 `COOKIE_SECURE=true`에서 강제 — 2026-06-12 sunmin
 - 검증: 단위 테스트 74개 전부 통과 + e2e(CORS preflight 3종 — evil origin은 대시보드 API에서 ACAO 미발급, brute-force 11번째 429) 통과
 
-## 11. 보안 보강 (예정) — 세션·XSS 강화
+## 11. 보안 보강 — 세션·XSS 강화 ✅
 
-> 배경: 현재 인증은 서명된 httpOnly 세션 쿠키(§5). httpOnly가 토큰 절도형 XSS는 막지만,
-> ⓐ 쿠키 값이 서명된 `userId` 자체(stateless)라 **서버측 세션 무효화가 불가능**하고,
-> ⓑ `SESSION_SECRET` 유출 시 임의 사용자 위조가 가능하며, ⓒ 갱신(rotation) 부재로
-> 탈취 시 최대 7일간 유효하다. 우선순위: ① > ② (① 도입 시 갱신·강제 만료가 거의 공짜로 따라옴).
+> 배경: 기존 인증은 서명된 httpOnly 쿠키지만 값이 `userId` 자체(stateless)라
+> 서버측 세션 무효화 불가, SECRET 유출 시 위조 가능, 갱신 부재 문제가 있었음. 전면 교체.
 
-- [ ] **① 서버측 세션 저장소 도입** — `sessions` 테이블(랜덤 세션 ID → userId, created_at, expires_at, last_seen_at). 쿠키엔 추측 불가능한 랜덤 ID만 저장(userId 노출 제거). 효과: 서버 주도 로그아웃·강제 만료·"모든 기기 로그아웃"·비밀번호 변경 시 기존 세션 일괄 무효화 가능
-- [ ] **② 유휴 타임아웃 + 슬라이딩 갱신** — `last_seen_at` 기반 유휴 만료(예: N일 무활동 시 무효), 활동 시 만료 시각 연장(사실상의 세션 rotation). ①의 세션 테이블 위에서 구현
-- [ ] **③ CSP(Content-Security-Policy) 헤더** — 대시보드 응답에 CSP 적용해 XSS 자체를 1차 차단(httpOnly는 토큰 절도만 막고 세션 악용은 못 막음 — XSS 방어가 1차 방어선). `script-src 'self'` 등, 인라인 스크립트 정책 정리
-- [ ] **④ 세션 만료 정리 잡** — 만료된 세션 행 주기적 삭제(운영 cron, §9 보관 삭제 잡과 함께)
-- 참고: 단일 서버·내부 도구 규모에선 현재 7일 고정 쿠키도 수용 가능하나, ①을 넣으면 ②④가 저비용으로 따라오므로 묶어서 진행 권장
+- [x] **① 서버측 세션 저장소 도입** — `sessions` 테이블(마이그레이션 0002: 랜덤 32바이트 hex id → userId, created_at/last_seen_at/expires_at, user_id·expires_at 인덱스). 쿠키엔 추측 불가능한 랜덤 id만(userId 노출 제거), 여전히 서명. `createSession`/`touchSession`/`destroySession`/`destroyUserSessions`. 효과: **서버 주도 로그아웃**·강제 만료·"모든 기기 로그아웃"·비밀번호 변경 시 일괄 무효화 가능 (`lib/session.ts`) — 2026-06-15 sunmin
+- [x] **② 유휴 타임아웃 + 슬라이딩 갱신** — 7일 유휴 만료, 활동 시 `expires_at` 연장(쓰기 폭주 방지 위해 5분 SLIDE_THRESHOLD 지났을 때만 갱신). 만료 행은 검증 시 즉시 삭제 — 2026-06-15 sunmin
+- [x] **③ CSP(Content-Security-Policy)** — 대시보드 빌드 HTML에 CSP meta 주입(`script-src 'self'`, object-src none, base-uri self 등). dev는 HMR 때문에 제외, **빌드 전용 vite 플러그인**. frame-ancestors 등 헤더 전용 지시어는 리버스 프록시(인프라 §2)에서 — `vite.config.ts` 주석에 명시 — 2026-06-15 sunmin
+- [x] **④ 세션 만료 정리 잡** — `deleteExpiredSessions`, 서버 기동 시 1시간 간격 `setInterval`(`.unref()`로 프로세스 비차단). buildServer가 아닌 index.ts에 배치(테스트 격리) — 2026-06-15 sunmin
+- [x] **requireAuth 리팩터** — 검증된 userId를 `req.userId`에 실어 라우트가 재조회 없이 `currentUserId(req)`로 읽음(/me의 이중 세션 조회 제거) — 2026-06-15 sunmin
+- 검증: 단위 테스트 5개(newSessionId 64hex·고유성, isExpired 경계) → 워크스페이스 총 124개 통과. e2e(curl): 로그인 시 세션 행 생성(id 64자) → 로그아웃 시 **서버측 행 삭제** → 옛 쿠키 재사용 401(탈취 쿠키 무효화 입증) → 위조/무쿠키 401. 브라우저 e2e: 대시보드 origin에서 login→me→projects 200, `document.cookie`에 et_session 안 보임(**httpOnly 입증**), 새로고침 후 세션 유지. 빌드 산출 HTML에 CSP meta 확인
 
 ---
 

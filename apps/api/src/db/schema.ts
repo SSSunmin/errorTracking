@@ -48,6 +48,31 @@ export const users = pgTable(
   (t) => [uniqueIndex("users_email_uq").on(t.email)],
 );
 
+// 서버측 세션 저장소 — 쿠키엔 추측 불가능한 랜덤 id만 담고 userId는 여기서 매핑.
+// 서버 주도 로그아웃·강제 만료·유휴 타임아웃을 가능하게 한다.
+export const sessions = pgTable(
+  "sessions",
+  {
+    /** 랜덤 32바이트 hex */
+    id: text("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** 유휴 타임아웃 — 활동 시 슬라이딩 연장 */
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index("sessions_user_idx").on(t.userId),
+    index("sessions_expires_idx").on(t.expiresAt),
+  ],
+);
+
 export const projects = pgTable(
   "projects",
   {

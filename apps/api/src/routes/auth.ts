@@ -6,7 +6,10 @@ import { hashPassword, verifyPassword } from "../lib/password";
 import { checkRateLimit } from "../lib/rate-limit";
 import {
   clearSessionCookie,
-  getSessionUserId,
+  createSession,
+  currentUserId,
+  destroySession,
+  readSessionId,
   requireAuth,
   setSessionCookie,
 } from "../lib/session";
@@ -46,23 +49,26 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     if (!(await verifyPassword(body.password, user.passwordHash))) {
       return reply.code(401).send({ error: "invalid credentials" });
     }
-    setSessionCookie(reply, user.id);
+    const sessionId = await createSession(user.id);
+    setSessionCookie(reply, sessionId);
     return reply.send({ id: user.id, email: user.email, name: user.name });
   });
 
   app.post(
     "/api/auth/logout",
     { preHandler: requireAuth },
-    async (_req, reply) => {
+    async (req, reply) => {
+      // 서버측 세션도 삭제 — 쿠키만 지우던 것과 달리 탈취 쿠키도 무효화됨
+      const sessionId = readSessionId(req);
+      if (sessionId) await destroySession(sessionId);
       clearSessionCookie(reply);
       return reply.send({ ok: true });
     },
   );
 
   app.get("/api/auth/me", { preHandler: requireAuth }, async (req, reply) => {
-    const userId = getSessionUserId(req)!;
     const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
+      where: eq(users.id, currentUserId(req)),
     });
     if (!user) {
       clearSessionCookie(reply);
