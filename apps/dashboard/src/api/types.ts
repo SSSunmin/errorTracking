@@ -46,6 +46,17 @@ export interface TagValue {
 /** browser/os/release/environment → 분포 */
 export type TagDistribution = Record<string, TagValue[]>;
 
+export interface AlertRule {
+  projectId: number;
+  enabled: boolean;
+  onNewIssue: boolean;
+  onRegression: boolean;
+  onSpike: boolean;
+  email: string | null;
+  slackWebhookUrl: string | null;
+  updatedAt: string | null;
+}
+
 export type IssueSort = "last_seen" | "first_seen" | "times_seen";
 
 export interface IssueListResponse {

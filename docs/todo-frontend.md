@@ -81,11 +81,12 @@
 - [x] 필터 확장 — level 셀렉트 (environment/release는 태그 검색 문법으로 지원)
 - [x] ✅ **마일스톤 M4 완전 달성**: 에러 직전 행적·환경 정보·추이·태그분포·검색 — 2026-06-15
 
-## STEP 5. 알림 설정 UI (Phase 5)
+## STEP 5. 알림 설정 UI (Phase 5) ✅
 
-- [ ] 프로젝트별 알림 규칙 설정 화면 — 트리거(새 이슈/재발/급증) on/off
-- [ ] 채널 설정 — 이메일 주소, Slack webhook URL 입력
-- [ ] 🔗 백엔드: 알림 규칙 API 연동
+- [x] 프로젝트별 알림 규칙 설정 화면 — 트리거(새 이슈/재발/급증) on/off, 활성화 토글
+- [x] 채널 설정 — 이메일 주소, Slack webhook URL 입력
+- [x] 🔗 백엔드: 알림 규칙 API 연동 (`GET/PUT alert-rule`), SSRF 검증 에러 표시
+- 진입: 이슈 목록 헤더 "알림 설정" 링크 → `/projects/:id/alerts`
 
 ## STEP 6. 소스맵 도구 + 표시 (Phase 6)
 

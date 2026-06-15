@@ -1,4 +1,5 @@
 import type {
+  AlertRule,
   EventListResponse,
   IssueDetail,
   IssueListResponse,
@@ -102,5 +103,16 @@ export const api = {
     request<{ updated: number }>("/api/issues", {
       method: "PATCH",
       body: JSON.stringify({ ids, status }),
+    }),
+
+  getAlertRule: (projectId: number | string) =>
+    request<AlertRule>(`/api/projects/${projectId}/alert-rule`),
+  saveAlertRule: (
+    projectId: number | string,
+    rule: Omit<AlertRule, "projectId" | "updatedAt">,
+  ) =>
+    request<AlertRule>(`/api/projects/${projectId}/alert-rule`, {
+      method: "PUT",
+      body: JSON.stringify(rule),
     }),
 };

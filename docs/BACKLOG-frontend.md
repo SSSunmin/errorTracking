@@ -62,9 +62,12 @@
 - 검증(브라우저 e2e): 상세 추이 그래프(24h 24막대→14d 14막대 토글) + 태그 분포 4종(브라우저/OS/릴리즈/환경 100%) + 목록 스파크라인(활성 1·빈 3) + 태그검색(browser:Chrome→1건) + level 필터(warning→1건) 전부 확인. 워크스페이스 테스트 총 175개
 - ✅ **M4 마일스톤 완전 달성** — 데이터 심화 화면 완성 — 2026-06-15
 
-## 5. 알림 설정 UI (todo STEP 5)
+## 5. 알림 설정 UI (todo STEP 5) ✅
 
-- [ ] 프로젝트별 알림 규칙 화면 — 트리거(새 이슈/재발/급증) on/off, 이메일·Slack webhook 입력
+- [x] **알림 설정 화면** — `/projects/:id/alerts` (이슈 목록 헤더 "알림 설정" 링크). 활성화 토글 + 트리거 3종(새 이슈/재발/급증) on/off(비활성 시 disabled) + 채널(이메일·Slack webhook). 저장 시 빈 채널은 null로 전송, "저장됨" 피드백 (`pages/AlertSettingsPage.tsx`) — 2026-06-15 sunmin
+- [x] **검증 에러 표시** — 백엔드 400을 메시지로 변환(Slack은 hooks.slack.com 안내, 이메일 형식 안내) — 2026-06-15 sunmin
+- 검증(브라우저 e2e): 기본값 로드(활성/새이슈·재발 on/급증 off) → 잘못된 Slack URL(evil.example.com) 저장→SSRF 검증 에러 → 유효 저장(hooks.slack.com+이메일+급증 토글) → 새로고침 후 영속 확인. 워크스페이스 테스트 189개
+- ✅ **Phase 5 알림 완성** — 2026-06-15
 
 ## 6. 소스맵 도구 (todo STEP 6) — M6 마일스톤
 

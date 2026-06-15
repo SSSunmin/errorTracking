@@ -7,6 +7,7 @@ import {
   Routes,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth";
+import { AlertSettingsPage } from "./pages/AlertSettingsPage";
 import { IssueDetailPage } from "./pages/IssueDetailPage";
 import { IssuesPage } from "./pages/IssuesPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -44,6 +45,10 @@ export function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<ProjectsPage />} />
             <Route path="/projects/:projectId" element={<IssuesPage />} />
+            <Route
+              path="/projects/:projectId/alerts"
+              element={<AlertSettingsPage />}
+            />
             <Route path="/issues/:issueId" element={<IssueDetailPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

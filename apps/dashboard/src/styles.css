@@ -260,6 +260,73 @@ select:focus {
   padding: 32px 24px 64px;
 }
 
+.page-narrow {
+  max-width: 560px;
+}
+
+.alerts-link {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border: 1px solid var(--border-strong);
+  padding: 4px 12px;
+}
+
+.alerts-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── 알림 설정 ──────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.toggle-row input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.toggle-row span {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggle-row b {
+  font-size: 13px;
+}
+
+.toggle-row small {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+.field-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+}
+
+.save-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.saved-note {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ok);
+}
+
 .page-head {
   display: flex;
   align-items: baseline;

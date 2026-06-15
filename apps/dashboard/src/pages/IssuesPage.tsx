@@ -107,6 +107,9 @@ export function IssuesPage() {
         </Link>
         <h1 className="page-title">{project?.name ?? `#${projectId}`}</h1>
         {data && <span className="page-sub">이슈 {data.total}건</span>}
+        <Link className="alerts-link" to={`/projects/${projectId}/alerts`}>
+          알림 설정
+        </Link>
       </div>
 
       <form className="issue-search" onSubmit={onSearch}>
