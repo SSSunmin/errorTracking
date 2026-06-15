@@ -5,7 +5,9 @@
 ## 문서
 
 - [서비스 기획서](docs/service-plan.md)
+- [연동 가이드 — 내 웹 프로젝트에 붙이기](docs/USAGE.md)
 - [배포 가이드](docs/DEPLOY.md)
+- [동작 예제 (VOLT 데모 쇼핑몰)](examples/demo-shop/)
 - [개발 체크리스트 (원본)](docs/error-tracking-checklist.md)
 - BACKLOG (기능별 진행 현황 + 완료일): [백엔드](docs/BACKLOG-backend.md) · [프론트엔드](docs/BACKLOG-frontend.md) · [인프라](docs/BACKLOG-infra.md)
 - TODO (작업 순서 체크리스트): [백엔드](docs/todo-backend.md) · [프론트엔드](docs/todo-frontend.md) · [인프라](docs/todo-infra.md)

@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@errortracking/sdk", "demo"],
       "autoPort": true
+    },
+    {
+      "name": "demo-shop",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["examples/demo-shop/serve.mjs"],
+      "autoPort": true
     }
   ]
 }

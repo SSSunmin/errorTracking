@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VOLT — 전자기기 쇼핑몰 (errtrack 데모)</title>
+
+    <!-- ① 우리가 만든 SDK를 script 태그로 로드 (실제 웹사이트와 동일한 방식) -->
+    <script src="/errtrack.iife.js"></script>
+    <script>
+      // ② init 한 줄이면 끝 — 이후 모든 런타임 에러가 자동 수집됨
+      //    DSN은 데모용(로컬 project 4). 본인 환경에선 대시보드에서 발급한 DSN으로 교체.
+      errtrack.init({
+        dsn: "http://e8a5ab122663486942f56dabb68efa29@127.0.0.1:4000/4",
+        release: "volt-shop@1.4.2",
+        environment: "production",
+      });
+      errtrack.setUser({ id: "u-8842", email: "shopper@volt.test" });
+    </script>
+
+    <style>
+      :root {
+        --bg: #0d0f14;
+        --card: #161922;
+        --line: #232733;
+        --text: #e7e9ee;
+        --dim: #8b91a0;
+        --volt: #d8ff3e;
+        --volt-dark: #11140a;
+        --danger: #ff5470;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 500px at 80% -10%, rgba(216,255,62,0.08), transparent), var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+      }
+      header {
+        display: flex; align-items: center; gap: 16px;
+        padding: 16px 28px; border-bottom: 1px solid var(--line);
+        position: sticky; top: 0; background: rgba(13,15,20,0.85); backdrop-filter: blur(8px); z-index: 10;
+      }
+      .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+      .logo b { color: var(--volt); }
+      .spacer { flex: 1; }
+      .cart { font-size: 14px; color: var(--dim); }
+      .cart b { color: var(--text); }
+      .sdk-badge {
+        font-size: 11px; font-family: ui-monospace, monospace;
+        color: var(--volt); border: 1px solid rgba(216,255,62,0.4);
+        padding: 3px 9px; border-radius: 99px;
+      }
+      .hero { padding: 40px 28px 8px; }
+      .hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -0.02em; }
+      .hero p { margin: 0; color: var(--dim); }
+      main { padding: 24px 28px 60px; max-width: 1080px; margin: 0 auto; }
+      .toolbar { display: flex; gap: 10px; margin: 18px 0 24px; flex-wrap: wrap; }
+      .toolbar input {
+        background: var(--card); border: 1px solid var(--line); color: var(--text);
+        padding: 9px 12px; border-radius: 8px; font-size: 14px; width: 180px;
+      }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+      .product {
+        background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+        padding: 18px; display: flex; flex-direction: column; gap: 10px;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .product:hover { border-color: #313747; transform: translateY(-2px); }
+      .thumb { font-size: 40px; height: 72px; display: grid; place-items: center; background: #0f1219; border-radius: 10px; }
+      .pname { font-weight: 600; }
+      .price { color: var(--volt); font-weight: 700; font-size: 18px; }
+      .stock { font-size: 12px; color: var(--dim); }
+      button {
+        font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+        background: #1c2030; color: var(--text); padding: 9px 12px; transition: filter 0.12s;
+      }
+      button:hover { filter: brightness(1.18); }
+      .btn-volt { background: var(--volt); color: var(--volt-dark); border-color: var(--volt); font-weight: 700; }
+      .btn-row { display: flex; gap: 8px; margin-top: auto; }
+      .panel {
+        margin-top: 36px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 14px; padding: 22px;
+      }
+      .panel h2 { margin: 0 0 14px; font-size: 17px; }
+      .panel .btn-row { margin-top: 0; flex-wrap: wrap; }
+      .hint { color: var(--dim); font-size: 13px; margin: 4px 0 16px; }
+      #log {
+        margin-top: 12px; font-family: ui-monospace, monospace; font-size: 12px;
+        color: var(--dim); min-height: 20px;
+      }
+      #log .err { color: var(--danger); }
+      #log .ok { color: var(--volt); }
+      footer { padding: 30px 28px; color: var(--dim); font-size: 13px; border-top: 1px solid var(--line); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo"><b>⚡VOLT</b> 전자상가</div>
+      <div class="spacer"></div>
+      <div class="cart">🛒 장바구니 <b id="cart-count">0</b></div>
+      <span class="sdk-badge" id="sdk-badge">errtrack ●</span>
+    </header>
+
+    <section class="hero">
+      <h1>오늘의 가젯, 번개같이 배송 ⚡</h1>
+      <p>아래 버튼들이 일부러 다양한 에러를 일으킵니다 — 대시보드에서 실시간으로 확인하세요.</p>
+    </section>
+
+    <main>
+      <div class="toolbar">
+        <input id="search" type="text" placeholder="상품 검색…" />
+        <button id="btn-reviews">⭐ 리뷰 불러오기</button>
+      </div>
+
+      <div class="grid" id="grid"></div>
+
+      <div class="panel">
+        <h2>결제 / 쿠폰</h2>
+        <p class="hint">실제 사이트처럼 결제·쿠폰 흐름에서 에러가 납니다.</p>
+        <div class="btn-row">
+          <input id="coupon" type="text" placeholder="쿠폰 코드 입력 (예: VOLT10)" style="background:#1c2030;border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:8px;" />
+          <button id="btn-coupon">쿠폰 적용</button>
+          <button id="btn-checkout" class="btn-volt">결제하기</button>
+        </div>
+        <div id="log">상태: SDK 초기화됨 — 버튼을 눌러보세요</div>
+      </div>
+    </main>
+
+    <footer>VOLT 전자상가 데모 · release volt-shop@1.4.2 · errtrack SDK 연동</footer>
+
+    <script>
+      // ── 상품 데이터 ──────────────────────────────
+      const PRODUCTS = [
+        { id: "p1", name: "무선 이어버드 Pro", price: 129000, emoji: "🎧", stock: 12 },
+        { id: "p2", name: "기계식 키보드 75%", price: 98000, emoji: "⌨️", stock: 0 },
+        { id: "p3", name: "USB-C 고속충전기", price: 32000, emoji: "🔌", stock: 40 },
+        { id: "p4", name: "4K 웹캠", price: 76000, emoji: "📷", stock: 5 },
+      ];
+      let cart = 0;
+      const log = (msg, cls = "") => {
+        document.getElementById("log").innerHTML = `상태: <span class="${cls}">${msg}</span>`;
+      };
+
+      // ── 상품 렌더 ────────────────────────────────
+      function render(list) {
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "";
+        for (const p of list) {
+          const el = document.createElement("div");
+          el.className = "product";
+          el.innerHTML = `
+            <div class="thumb">${p.emoji}</div>
+            <div class="pname">${p.name}</div>
+            <div class="price">₩${p.price.toLocaleString()}</div>
+            <div class="stock">${p.stock > 0 ? "재고 " + p.stock + "개" : "품절"}</div>
+            <div class="btn-row">
+              <button class="btn-volt" data-add="${p.id}" style="flex:1">담기</button>
+            </div>`;
+          grid.appendChild(el);
+        }
+      }
+      render(PRODUCTS);
+      console.log("[volt] 상품 " + PRODUCTS.length + "개 렌더 완료");
+
+      // ── 검색 (정상 동작 — breadcrumb 입력 기록용) ──
+      document.getElementById("search").addEventListener("input", (e) => {
+        const q = e.target.value.toLowerCase();
+        render(PRODUCTS.filter((p) => p.name.toLowerCase().includes(q)));
+      });
+
+      // ── 장바구니 담기 — 품절 상품(p2)에서 버그 발생 ──
+      document.getElementById("grid").addEventListener("click", (e) => {
+        const id = e.target.getAttribute("data-add");
+        if (!id) return;
+        const product = PRODUCTS.find((p) => p.id === id);
+        console.log("[volt] 담기 클릭: " + product.name);
+        // 🐞 BUG: 재고 0인 상품의 할인율을 계산하려다 정의 안 된 함수 호출
+        if (product.stock === 0) {
+          const finalPrice = applyMemberDiscount(product.price); // ReferenceError
+          log("할인가 " + finalPrice, "ok");
+        } else {
+          cart++;
+          document.getElementById("cart-count").textContent = cart;
+          log(product.name + " 담음 ✓", "ok");
+        }
+      });
+
+      // ── 쿠폰 적용 — 잘못된 JSON 파싱 버그 ──
+      document.getElementById("btn-coupon").addEventListener("click", () => {
+        const code = document.getElementById("coupon").value || "VOLT10";
+        console.log("[volt] 쿠폰 적용 시도: " + code);
+        // 🐞 BUG: 쿠폰 코드를 JSON 설정으로 잘못 파싱
+        const config = JSON.parse(code); // SyntaxError
+        log("쿠폰 " + config.percent + "% 적용", "ok");
+      });
+
+      // ── 결제 — fetch 실패 후 null 접근 버그 ──
+      document.getElementById("btn-checkout").addEventListener("click", async () => {
+        console.log("[volt] 결제 시작");
+        log("결제 처리 중…");
+        let order = null;
+        try {
+          const res = await fetch("/api/checkout"); // 404 (breadcrumb 기록됨)
+          order = await res.json();
+        } catch (_) {
+          // 네트워크 에러는 삼키고…
+        }
+        // 🐞 BUG: order가 null인데 항목을 읽음
+        log("주문번호 " + order.items.length + "건", "ok"); // TypeError
+      });
+
+      // ── 리뷰 불러오기 — cause 체인 에러 ──
+      document.getElementById("btn-reviews").addEventListener("click", () => {
+        console.warn("[volt] 리뷰 서비스 호출");
+        try {
+          throw new Error("ECONNREFUSED 10.0.0.5:6379");
+        } catch (root) {
+          // 🐞 BUG: 원인을 cause로 감싼 래퍼 에러를 던짐
+          throw new Error("리뷰 서비스 연결 실패", { cause: root });
+        }
+      });
+
+      // ── 페이지 로드 직후 자동 발생 에러 (애널리틱스 초기화 버그) ──
+      setTimeout(() => {
+        console.log("[volt] 애널리틱스 초기화");
+        const analytics = window.__VOLT_ANALYTICS__; // undefined
+        // 🐞 BUG: 설정 객체가 없는데 프로퍼티 접근
+        analytics.track("page_view", { path: location.pathname }); // TypeError
+      }, 1200);
+    </script>
+  </body>
+</html>
