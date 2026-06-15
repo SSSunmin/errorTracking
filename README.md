@@ -5,6 +5,7 @@
 ## 문서
 
 - [서비스 기획서](docs/service-plan.md)
+- [배포 가이드](docs/DEPLOY.md)
 - [개발 체크리스트 (원본)](docs/error-tracking-checklist.md)
 - BACKLOG (기능별 진행 현황 + 완료일): [백엔드](docs/BACKLOG-backend.md) · [프론트엔드](docs/BACKLOG-frontend.md) · [인프라](docs/BACKLOG-infra.md)
 - TODO (작업 순서 체크리스트): [백엔드](docs/todo-backend.md) · [프론트엔드](docs/todo-frontend.md) · [인프라](docs/todo-infra.md)
@@ -21,7 +22,9 @@ packages/
   cli/        소스맵 업로드 CLI (Phase 6에서 구현)
 infra/
   docker-compose.dev.yml  로컬 개발용 PostgreSQL
-docs/         기획서 + 트랙별 TODO
+  docker-compose.yml      운영 구성 (db + api + dashboard)
+  Dockerfile.api / Dockerfile.dashboard / nginx.conf
+docs/         기획서 + 배포 가이드 + 트랙별 TODO
 ```
 
 > Worker(비동기 처리 파이프라인)는 초기에는 `apps/api` 안에서 시작하고,

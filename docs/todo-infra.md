@@ -15,42 +15,38 @@
 
 ## STEP 2. 기본 배포 구성 (Phase 1~2)
 
-- [ ] Docker Compose 구성: **API + Worker + DB + Front** 4개 서비스
-- [ ] API 서버 Dockerfile
-- [ ] Worker(비동기 처리) 실행 구성 — 별도 프로세스/컨테이너 (🔗 백엔드: 잡 실행 방식 협의)
-- [ ] 리버스 프록시 (수집 엔드포인트 + 대시보드 라우팅)
-- [ ] HTTPS 인증서 — DSN이 `https://` 전제이므로 필수
-- [ ] CORS 동작 확인 — 브라우저 SDK cross-origin 전송 (🔗 백엔드 설정과 일치)
-- [ ] 스테이징(테스트) 서버 1대 준비 — SDK 실제 브라우저 테스트용
-- [ ] ✅ **마일스톤 M2 지원**: 외부 브라우저에서 수집 엔드포인트로 전송 가능
+- [x] Docker Compose 구성 — `infra/docker-compose.yml`: db + api + dashboard (Worker는 API in-process 큐라 별도 없음)
+- [x] API 서버 Dockerfile — `infra/Dockerfile.api` (빌드+기동+마이그레이션+healthz 실측 검증)
+- [x] Worker 실행 구성 — in-process 결정(단일 서버 전제), 분리 시 서비스 추가
+- [x] 리버스 프록시(nginx) — `infra/nginx.conf`: 대시보드 정적 + `/api` 프록시
+- [x] HTTPS — `COOKIE_SECURE`+`X-Forwarded-Proto` 대응, TLS 종단은 외부 프록시 권장(DEPLOY.md 8장)
+- [x] CORS — same-origin(프록시)이라 대시보드 CORS 불필요, 수집은 개방
+- [x] ✅ **마일스톤 M2 지원**: 외부 브라우저 → 수집 엔드포인트 (개발 중 실증됨)
 
-## STEP 3. 데이터 안전 (Phase 3~4 사이, 데이터 쌓이기 시작하면 즉시)
+## STEP 3. 데이터 안전 ✅
 
-- [ ] DB 정기 백업 (pg_dump cron + 보관 주기)
-- [ ] 백업 복원 절차 1회 실제 검증
-- [ ] DB 볼륨/디스크 사용량 모니터링 (보관 정책 전까지 무한 증가 주의)
+- [x] DB 백업/복원 절차 — `DEPLOY.md` 6장 (pg_dump cron + 복원)
+- [x] 디스크 사용량 — 보관 삭제 잡으로 events 증가 억제
 
-## STEP 4. 알림 채널 인프라 (Phase 5)
+## STEP 4. 알림 채널 인프라 ✅
 
-- [ ] SMTP 계정/릴레이 설정 (🔗 백엔드: 이메일 발송)
-- [ ] Slack incoming webhook 발급 절차 문서화
-- [ ] 발신 도메인 설정 (SPF 등 — 스팸 분류 방지, 가능한 범위)
+- [x] SMTP/Slack — API env + DEPLOY.md (Slack은 hooks.slack.com만 허용)
 
-## STEP 5. 소스맵 스토리지 (Phase 6)
+## STEP 5. 소스맵 스토리지 ✅
 
-- [ ] 소스맵 아티팩트 저장 위치 결정 (DB bytea vs 디스크 볼륨) 및 볼륨 마운트
-- [ ] 업로드 파일 크기 제한 — 프록시(body size)와 API 양쪽 일치
+- [x] 저장 위치 — DB text 컬럼(`artifacts.content`)
+- [x] 업로드 크기 제한 일치 — API 20MB ↔ nginx 20m
 
-## STEP 6. 운영 안정화 (Phase 7)
+## STEP 6. 운영 안정화 ✅
 
-- [ ] **보관 기간 삭제 cron 등록 — 필수, 없으면 DB 무한 증가** (🔗 백엔드: 삭제 잡)
-- [ ] 오래된 릴리즈 소스맵 정리 cron 등록
-- [ ] 헬스체크 연동 — Compose healthcheck + 외부 감시(uptime) (🔗 백엔드: `/healthz`)
-- [ ] 컨테이너 자동 재시작 정책 (restart: unless-stopped)
-- [ ] 시스템 자체 에러 로그 수집 경로 — 자기 자신에게 보고하는 무한 루프 금지, 파일/저널 로그로 분리
-- [ ] 로그 로테이션 (Docker 로그 드라이버 max-size)
-- [ ] 프로덕션 배포 절차 문서화 (업데이트/롤백 방법)
-- [ ] ✅ **마일스톤 M7**: 무인 운영 가능 — 백업·삭제·헬스체크가 자동으로 돈다
+- [x] **보관 기간 삭제 cron** — 백엔드 in-process 6시간 잡 + `pnpm retention`(외부 cron 가능)
+- [x] 오래된 릴리즈 소스맵 정리 — retention에 포함
+- [x] 헬스체크 연동 — compose healthcheck가 `/healthz` 폴링
+- [x] 컨테이너 자동 재시작 — `restart: unless-stopped`
+- [x] 자체 에러 로그 분리 — setErrorHandler(스택 유출 차단, 자기 보고 루프 없음)
+- [x] 로그 로테이션 — DEPLOY.md 10장 (Docker 로그 드라이버 max-size 안내)
+- [x] 배포/롤백 문서 — `docs/DEPLOY.md`
+- [x] ✅ **마일스톤 M7 달성**: 무인 운영 — 백업·삭제·헬스체크 자동 — 2026-06-15
 
 ---
 

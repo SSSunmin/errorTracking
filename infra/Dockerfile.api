@@ -1,0 +1,17 @@
+# 수집 API + 처리 파이프라인(in-process worker)
+# 빌드 컨텍스트는 레포 루트 (compose에서 context: ..)
+FROM node:22-alpine
+
+RUN corepack enable
+WORKDIR /app
+
+# 워크스페이스 전체 복사 후 설치 (lockfile이 전체 워크스페이스 기준이라 frozen 설치에 필요)
+COPY . .
+RUN pnpm install --frozen-lockfile
+
+WORKDIR /app/apps/api
+ENV PORT=4000
+EXPOSE 4000
+
+# 기동 시 마이그레이션 적용 후 서버 시작
+CMD ["sh", "-c", "pnpm db:migrate && pnpm start"]

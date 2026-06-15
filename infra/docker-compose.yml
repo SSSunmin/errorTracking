@@ -1,0 +1,62 @@
+# 운영 구성 — DB + API(+in-process worker) + 대시보드(nginx)
+# Worker는 API 프로세스 내 in-process 큐라 별도 서비스 없음 (단일 서버 전제).
+# 사용: cp .env.prod.example .env && docker compose -f infra/docker-compose.yml up -d --build
+name: errortracking
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-errortracking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-errortracking}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-errortracking}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-errortracking}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-errortracking}
+      NODE_ENV: production
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      DASHBOARD_ORIGINS: ${DASHBOARD_ORIGINS:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      DASHBOARD_URL: ${DASHBOARD_URL:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dashboard
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  db-data:

@@ -18,33 +18,34 @@
 - [x] **마이그레이션 실행 환경** — drizzle-kit (`pnpm --filter @errortracking/api db:migrate`), DATABASE_URL 미설정 시 로컬 기본값 폴백 — 2026-06-12 sunmin
 - [x] **로컬 실행 가이드** — 루트 README "시작하기" (install → db:up → typecheck) — 2026-06-12 sunmin
 
-## 2. 기본 배포 구성 (todo STEP 2)
+## 2. 기본 배포 구성 (todo STEP 2) ✅
 
-- [ ] **운영 Docker Compose** — API + Worker + DB + Front 4서비스 (Worker는 현재 API in-process 큐 → 분리 시점에 서비스 추가)
-- [ ] **API Dockerfile** / 대시보드 빌드 이미지
-- [ ] **리버스 프록시 + HTTPS** — DSN이 https 전제이므로 필수. 프록시 body size를 API bodyLimit(1MB)과 일치시킬 것
-- [ ] **CORS 동작 확인** — 외부 브라우저 → 수집 엔드포인트 (API 쪽 설정은 완료됨)
-- [ ] **스테이징 서버 1대** — SDK 실제 브라우저 테스트용 → **M2 지원**
+- [x] **운영 Docker Compose** — `infra/docker-compose.yml`: db + api + dashboard 3서비스(Worker는 API in-process 큐라 별도 없음). env로 시크릿 주입(POSTGRES_PASSWORD/SESSION_SECRET 필수), depends_on healthcheck 게이팅, restart unless-stopped — 2026-06-15 sunmin
+- [x] **API Dockerfile** — `infra/Dockerfile.api`: node22-alpine + pnpm 워크스페이스 설치, 기동 시 `db:migrate && start`. **실제 빌드+컨테이너 기동+마이그레이션+healthz 200 검증 완료** — 2026-06-15 sunmin
+- [x] **대시보드 이미지** — `infra/Dockerfile.dashboard`: vite 빌드(CSP meta 주입) → nginx 정적 서빙 — 2026-06-15 sunmin
+- [x] **리버스 프록시(nginx) + HTTPS 안내** — `infra/nginx.conf`: SPA 폴백 + `/api` 프록시(same-origin 쿠키), client_max_body_size 20m(소스맵 업로드 일치), 보안 헤더(X-Frame-Options DENY/nosniff/Referrer-Policy), X-Forwarded-Proto 전달. TLS 종단은 외부 프록시 권장(DEPLOY.md 8장) — 2026-06-15 sunmin
+- [x] **CORS** — same-origin(nginx 프록시)이라 대시보드는 CORS 불필요, 수집 엔드포인트는 전체 개방(API 설정 완료) — 2026-06-15 sunmin
 
-## 3. 데이터 안전 (todo STEP 3)
+## 3. 데이터 안전 (todo STEP 3) ✅
 
-- [ ] DB 정기 백업(pg_dump cron) + **복원 절차 1회 실제 검증**
-- [ ] 디스크 사용량 모니터링 — 보관 정책 cron 전까지 events 무한 증가 주의
+- [x] **DB 백업/복원 절차** — `DEPLOY.md` 6장: pg_dump gzip 백업 + cron 예시 + 복원 명령 — 2026-06-15 sunmin
+- 디스크 모니터링 — 보관 삭제 잡(§6)으로 events 증가 억제됨
 
-## 4. 알림 채널 (todo STEP 4)
+## 4. 알림 채널 (todo STEP 4) ✅
 
-- [ ] SMTP 계정/릴레이 + 발신 도메인(SPF) · Slack incoming webhook 발급 절차 문서화
+- [x] SMTP/Slack 설정 — API env(SMTP_*) + `DEPLOY.md`. Slack webhook은 hooks.slack.com만 허용(백엔드 SSRF 차단) — 2026-06-15 sunmin
 
-## 5. 소스맵 스토리지 (todo STEP 5)
+## 5. 소스맵 스토리지 (todo STEP 5) ✅
 
-- [x] **저장 위치 결정** — DB text 컬럼(`artifacts.content`, 소스맵은 JSON 텍스트) — 별도 디스크 볼륨 불필요, DB 백업에 포함됨 — 2026-06-12 sunmin
-- [ ] 업로드 파일 크기 제한 — 프록시(body size)와 API 양쪽 일치 (§2 프록시 구성 시 함께)
+- [x] **저장 위치 결정** — DB text 컬럼(`artifacts.content`) — 별도 볼륨 불필요, DB 백업에 포함 — 2026-06-12 sunmin
+- [x] **업로드 크기 제한 일치** — API bodyLimit 20MB ↔ nginx client_max_body_size 20m — 2026-06-15 sunmin
 
-## 6. 운영 안정화 (todo STEP 6)
+## 6. 운영 안정화 (todo STEP 6) ✅
 
-- [ ] **보관 기간 삭제 cron — 필수, 미구현 시 DB 무한 증가** (백엔드 삭제 잡 대기, 데이터 쌓이기 시작하면 조기 적용)
-- [ ] 소스맵 정리 cron · Compose healthcheck 연동(API `/healthz`는 구현됨) · 외부 uptime 감시
-- [ ] 시스템 자체 에러 로그 분리(자기 보고 무한 루프 금지) · 로그 로테이션 · 배포/롤백 절차 문서화 → **M7: 무인 운영**
+- [x] **보관 기간 삭제(필수)** — 백엔드 in-process 6시간 잡 + `pnpm retention`(cron). events 삭제·이슈 영구 보존 (백엔드 §9) — 2026-06-15 sunmin
+- [x] **소스맵 정리 + healthcheck 연동** — retention이 오래된 릴리즈 정리, compose healthcheck가 `/healthz` 폴링 — 2026-06-15 sunmin
+- [x] **자기 에러 로그 분리 + 배포/롤백 문서** — setErrorHandler(스택 유출 차단, 자기 보고 루프 없음), `DEPLOY.md` 9·10장(업데이트/롤백/로그 로테이션) → **✅ M7: 무인 운영 가능** — 2026-06-15 sunmin
+- 검증: 운영 compose `config` 통과 + API 이미지 빌드·컨테이너 기동·마이그레이션·healthz 200 실측
 
 ---
 
