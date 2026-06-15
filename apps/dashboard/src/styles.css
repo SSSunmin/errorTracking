@@ -867,6 +867,47 @@ a.back-link:hover {
   font-size: 12px;
 }
 
+/* ── 소스 컨텍스트 (심볼리케이션) ───────── */
+.source-context {
+  margin: 0;
+  border-left: 3px solid var(--accent);
+  background: var(--bg);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.src-line {
+  display: flex;
+  gap: 12px;
+  padding: 1px 0;
+}
+
+.src-line.hit {
+  background: rgba(255, 59, 92, 0.1);
+}
+
+.src-ln {
+  width: 44px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--text-faint);
+  user-select: none;
+}
+
+.src-line.hit .src-ln {
+  color: var(--danger);
+}
+
+.src-code {
+  white-space: pre;
+  color: var(--text-dim);
+}
+
+.src-line.hit .src-code {
+  color: var(--text);
+}
+
 .ctx-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

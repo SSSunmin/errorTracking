@@ -5,6 +5,7 @@ import type {
   ExceptionValue,
   IssueStatus,
   Severity,
+  StackFrame,
 } from "@errortracking/shared";
 import { api } from "../api/client";
 import type {
@@ -298,11 +299,14 @@ function ExceptionView({ exception }: { exception: ExceptionValue }) {
             seg.inApp ? (
               <div key={i}>
                 {seg.frames.map((frame, j) => (
-                  <div key={j} className="frame in-app">
-                    <span className="frame-fn">
-                      {frame.function ?? "<anonymous>"}
-                    </span>
-                    <span className="frame-loc">{frameLocation(frame)}</span>
+                  <div key={j}>
+                    <div className="frame in-app">
+                      <span className="frame-fn">
+                        {frame.function ?? "<anonymous>"}
+                      </span>
+                      <span className="frame-loc">{frameLocation(frame)}</span>
+                    </div>
+                    <SourceContext frame={frame} />
                   </div>
                 ))}
               </div>
@@ -313,6 +317,31 @@ function ExceptionView({ exception }: { exception: ExceptionValue }) {
         </div>
       )}
     </section>
+  );
+}
+
+/** 심볼리케이션으로 복원된 소스 컨텍스트 (pre/context/post) */
+function SourceContext({ frame }: { frame: StackFrame }) {
+  if (frame.context_line === undefined) return null;
+  const startLine =
+    (frame.lineno ?? 1) - (frame.pre_context?.length ?? 0);
+  const rows: { n: number; text: string; hit: boolean }[] = [];
+  (frame.pre_context ?? []).forEach((t, i) =>
+    rows.push({ n: startLine + i, text: t, hit: false }),
+  );
+  rows.push({ n: frame.lineno ?? 0, text: frame.context_line, hit: true });
+  (frame.post_context ?? []).forEach((t, i) =>
+    rows.push({ n: (frame.lineno ?? 0) + 1 + i, text: t, hit: false }),
+  );
+  return (
+    <pre className="source-context">
+      {rows.map((r, i) => (
+        <div key={i} className={`src-line${r.hit ? " hit" : ""}`}>
+          <span className="src-ln">{r.n}</span>
+          <span className="src-code">{r.text || " "}</span>
+        </div>
+      ))}
+    </pre>
   );
 }
 

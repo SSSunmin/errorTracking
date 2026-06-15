@@ -69,10 +69,14 @@
 - 검증(브라우저 e2e): 기본값 로드(활성/새이슈·재발 on/급증 off) → 잘못된 Slack URL(evil.example.com) 저장→SSRF 검증 에러 → 유효 저장(hooks.slack.com+이메일+급증 토글) → 새로고침 후 영속 확인. 워크스페이스 테스트 189개
 - ✅ **Phase 5 알림 완성** — 2026-06-15
 
-## 6. 소스맵 도구 (todo STEP 6) — M6 마일스톤
+## 6. 소스맵 도구 (todo STEP 6) — M6 마일스톤 ✅
 
-- [ ] **업로드 CLI** (`packages/cli`) + webpack/vite 플러그인 (빌드 시 자동 업로드 + release 주입)
-- [ ] 스택 뷰어에 원본 소스 컨텍스트(주변 5줄) 표시
+- [x] **업로드 CLI** — `packages/cli`: `errtrack-upload` bin(--dsn/--secret/--release/--dist 또는 ERRTRACK_* env). dist에서 .map 재귀 수집(`collect.ts`), basename으로 아티팩트명 도출, secret_key 헤더로 업로드(`upload.ts`) — 2026-06-15 sunmin
+- [x] **vite 플러그인** — `errtrackSourcemaps({dsn,secretKey,release,dist})` closeBundle에서 자동 업로드. vite 직접 의존 없이 구조적 Plugin 타입 (`vite-plugin.ts`) — 2026-06-15 sunmin
+- [x] **스택 뷰어 소스 컨텍스트** — in_app 프레임에 복원된 pre/context/post 5줄을 라인번호와 함께 표시, 에러 줄 빨강 강조 (`SourceContext`, `IssueDetailPage`) — 2026-06-15 sunmin
+- [x] **테스트** — CLI 단위 6개(artifactName/uploadUrl/uploadSourceMaps 토큰·실패) → 워크스페이스 총 202개 — 2026-06-15 sunmin
+- 검증(e2e): 픽스처 dist(.map) → CLI 업로드(잘못된 secret 401·유효 201) → 해당 release로 minify 이벤트 → 대시보드 이슈 상세에서 `widget.js:3:1` 복원 + 소스 컨텍스트 5줄(에러 줄 강조) 렌더 확인
+- ✅ **M6 마일스톤 달성** — minify 에러 → 원본 코드 위치/소스 — 2026-06-15
 
 ## 7. 마무리 (todo STEP 7)
 

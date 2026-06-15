@@ -95,7 +95,7 @@
 - [x] **심볼리케이션** — `@jridgewell/trace-mapping`. 이벤트 release로 릴리즈 조회 → 프레임 basename으로 아티팩트 매칭 → `originalPositionFor`(colno 1↔0-based 변환)로 원본 파일/라인/함수 복원, sourcesContent에서 주변 5줄(pre/context/post_context) 추출. 릴리즈/아티팩트 없으면 폴백(원본 유지). TraceMap 캐시 (`pipeline/symbolicate.ts`) — 2026-06-15 sunmin
 - [x] **핑거프린팅 앞 단계 배치** — 심볼리케이션 후 그룹핑 → 원본 경로로 안정적 그룹핑(빌드 해시 무관) — 2026-06-15 sunmin
 - 검증: 단위 7개(basename·extractContext·applySourceMap, 손수 만든 소스맵으로 minify→원본 복원). e2e: 업로드 인증(무토큰/오토큰 401·유효 201) → minify 프레임(bundle.min.js:1:1) 이벤트 → 저장된 프레임이 app.js:3 + context_line "throw new Error('boom')" + pre/post_context로 복원, in_app 보존. api 테스트 77개
-- [ ] 🔗 대시보드 소스 컨텍스트 표시 + 업로드 CLI/플러그인 (프론트 STEP 6) → M6 완성
+- [x] 🔗 대시보드 소스 컨텍스트 표시 + 업로드 CLI/플러그인 (프론트 STEP 6) → **✅ M6 완성** — 2026-06-15
 
 ## 9. 운영 (todo STEP 9)
 

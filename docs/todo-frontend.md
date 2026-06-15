@@ -88,13 +88,13 @@
 - [x] 🔗 백엔드: 알림 규칙 API 연동 (`GET/PUT alert-rule`), SSRF 검증 에러 표시
 - 진입: 이슈 목록 헤더 "알림 설정" 링크 → `/projects/:id/alerts`
 
-## STEP 6. 소스맵 도구 + 표시 (Phase 6)
+## STEP 6. 소스맵 도구 + 표시 (Phase 6) ✅
 
-- [ ] 소스맵 업로드 CLI — 릴리즈 버전과 함께 `.map` 파일 업로드 (🔗 백엔드: 업로드 엔드포인트 스펙)
-- [ ] webpack/vite 플러그인 — 빌드 시 자동 업로드 + release 주입
-- [ ] 스택 뷰어에 원본 소스 컨텍스트(주변 5줄) 표시
-- [ ] "특정 릴리즈에서 해결됨" 표시 (선택)
-- [ ] ✅ **마일스톤 M6**: minify된 에러가 원본 코드 위치로 보인다
+- [x] 소스맵 업로드 CLI — `errtrack-upload --dsn --secret --release --dist` (`packages/cli`), dist의 .map 재귀 수집 후 업로드
+- [x] vite 플러그인 — `errtrackSourcemaps({dsn, secretKey, release})` closeBundle에서 자동 업로드 (vite 직접 의존 없이 구조적 타입)
+- [x] 스택 뷰어에 원본 소스 컨텍스트(주변 5줄) 표시 — 라인번호 + 에러 줄 강조 (`SourceContext`)
+- [ ] "특정 릴리즈에서 해결됨" 표시 (선택) — 미구현
+- [x] ✅ **마일스톤 M6 달성**: minify된 에러가 원본 코드 위치 + 소스로 표시 — 2026-06-15 (CLI 업로드 → 심볼리케이션 → 대시보드 컨텍스트 e2e)
 
 ## STEP 7. 마무리 (Phase 7)
 
