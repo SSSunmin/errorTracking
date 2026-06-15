@@ -77,9 +77,16 @@
 - [x] **검색 + 필터** — `?q=` free-text(제목 ILIKE) + `key:value` 태그 검색(`parseSearch`): browser/os/release/environment는 고정 경로 EXISTS, 커스텀 태그는 `payload #>> ARRAY['tags', $key]`(키도 파라미터 바인딩 — 인젝션 차단). `?level=` 필터(잘못된 값 400) (`lib/search.ts`) — 2026-06-15 sunmin
 - 검증(e2e): stats 24버킷·합 일치, tags 분포 percent, q=undefined→2건, browser:Chrome→1·Safari→0, 혼합(텍스트+태그)→1, level=warning→1, level=bogus→400, 스파크라인 24버킷. 단위 테스트 13개(parseSearch 6·buckets 7) → api 56개
 
-## 7. 알림 (todo STEP 7)
+## 7. 알림 (todo STEP 7) ✅
 
-- [ ] 트리거 3종(새 이슈/재발/급증) + 이메일·Slack webhook 발송 + 디바운싱(이슈당 시간당 1회) + 규칙 API
+- [x] **트리거 판단** — 파이프라인 upsert 전 이슈 상태 캡처로 새 이슈/재발 구분, 급증은 5분 내 발생 수 ≥ `SPIKE_THRESHOLD`(기본 10). 우선순위 새 이슈>재발>급증 (`notify/triggers.ts` `decideTrigger`) — 2026-06-15 sunmin
+- [x] **채널: Slack** — incoming webhook fetch POST(blocks+폴백 text), 실패는 throw 없이 false (`notify/channels.ts`) — 2026-06-15 sunmin
+- [x] **채널: 이메일** — nodemailer, `SMTP_HOST` 미설정 시 비활성(no-op). 트랜스포터 lazy 캐시 — 2026-06-15 sunmin
+- [x] **메시지 포맷** — 제목 `[프로젝트] 라벨: 이슈제목`, 본문/blocks에 level·발생수·환경·대시보드 링크(`DASHBOARD_URL`) (`notify/format.ts`) — 2026-06-15 sunmin
+- [x] **디바운싱** — `notifications` 발송 로그의 이슈별 최근 발송 시각 기준 1시간 1회 (`withinDebounce`) — 2026-06-15 sunmin
+- [x] **규칙 API** — `GET/PUT /api/projects/:id/alert-rule` (미설정 시 기본값 반환, upsert). 이메일 형식·**슬랙 URL은 hooks.slack.com만 허용(SSRF 차단)** 검증 (`routes/alert-rules.ts`) — 2026-06-15 sunmin
+- [x] **파이프라인 통합** — 트랜잭션 커밋 후 트리거 판정→발송, 실패는 수집을 막지 않게 격리 (`pipeline/index.ts`) — 2026-06-15 sunmin
+- 검증: 단위 14개(format 6·triggers 8) → api 70개. e2e: alert-rule GET 기본값·PUT 잘못된 이메일/슬랙(SSRF) 400·유효 저장 / 새 이슈 이벤트→로컬 수신기로 슬랙 페이로드 발송+`notifications` 로그 / 재발을 1시간 내 발생→**디바운스 억제**(수신기 1건 유지, 상태는 unresolved+regression 전환됨)
 
 ## 8. 소스맵 + 심볼리케이션 (todo STEP 8) — M6 마일스톤
 

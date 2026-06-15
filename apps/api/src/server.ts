@@ -4,6 +4,7 @@ import cors, { type FastifyCorsOptions } from "@fastify/cors";
 import { MAX_EVENT_BYTES } from "@errortracking/shared";
 import { pool } from "./db/client";
 import { SESSION_SECRET } from "./lib/session";
+import { registerAlertRuleRoutes } from "./routes/alert-rules";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerIssueRoutes } from "./routes/issues";
 import { registerProjectRoutes } from "./routes/projects";
@@ -73,6 +74,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   registerAuthRoutes(app);
   registerProjectRoutes(app);
   registerIssueRoutes(app);
+  registerAlertRuleRoutes(app);
 
   return app;
 }

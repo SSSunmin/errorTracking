@@ -79,16 +79,16 @@
 - [ ] 필터 확장 — level, environment, release
 - [ ] 🔗 프론트엔드: 그래프·필터·검색 UI 연동
 
-## STEP 7. 알림 (Phase 5)
+## STEP 7. 알림 (Phase 5) ✅
 
-- [ ] 알림 트리거 ① 새 이슈 생성 시
-- [ ] 알림 트리거 ② 재발(regression) 시
-- [ ] 알림 트리거 ③ 급증 감지 (기준 정의 포함)
-- [ ] 이메일 발송 구현 (🔗 인프라: SMTP 설정)
-- [ ] Slack incoming webhook 발송 구현
-- [ ] 알림 메시지 포맷 — 이슈 제목/링크/발생 수/환경 포함
-- [ ] 디바운싱 — 동일 이슈 알림 시간당 1회 제한
-- [ ] 프로젝트별 알림 규칙 저장/조회 API (🔗 프론트엔드: 설정 UI)
+- [x] 알림 트리거 ① 새 이슈 생성 시 — 파이프라인 upsert 전 상태 캡처로 판단
+- [x] 알림 트리거 ② 재발(regression) 시 — resolved→unresolved 전환
+- [x] 알림 트리거 ③ 급증 감지 — 5분 내 발생 수 ≥ `SPIKE_THRESHOLD`(기본 10)
+- [x] 이메일 발송 구현 — nodemailer, `SMTP_HOST` 미설정 시 비활성 (🔗 인프라: SMTP)
+- [x] Slack incoming webhook 발송 구현 — fetch POST (blocks)
+- [x] 알림 메시지 포맷 — 이슈 제목/링크(`DASHBOARD_URL`)/발생 수/환경/level
+- [x] 디바운싱 — 동일 이슈 알림 1시간 1회 (`notifications` 발송 로그 기준)
+- [x] 프로젝트별 알림 규칙 저장/조회 API — `GET/PUT /api/projects/:id/alert-rule` (🔗 프론트엔드: 설정 UI), 슬랙 URL은 hooks.slack.com만 허용(SSRF 차단)
 
 ## STEP 8. 소스맵 + 심볼리케이션 (Phase 6 — 난이도 최고, 마지막)
 

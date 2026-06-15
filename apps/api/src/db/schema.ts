@@ -199,3 +199,46 @@ export const usersAffected = pgTable(
   },
   (t) => [primaryKey({ columns: [t.issueId, t.userId] })],
 );
+
+// 프로젝트별 알림 규칙 (프로젝트당 1개)
+export const alertRules = pgTable(
+  "alert_rules",
+  {
+    id: serial("id").primaryKey(),
+    projectId: integer("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    enabled: boolean("enabled").notNull().default(true),
+    /** 트리거 ① 새 이슈 ② 재발 ③ 급증 */
+    onNewIssue: boolean("on_new_issue").notNull().default(true),
+    onRegression: boolean("on_regression").notNull().default(true),
+    onSpike: boolean("on_spike").notNull().default(false),
+    /** 채널 — 미설정 시 해당 채널 미발송 */
+    email: text("email"),
+    slackWebhookUrl: text("slack_webhook_url"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("alert_rules_project_uq").on(t.projectId)],
+);
+
+// 발송 로그 — 디바운싱 판단 + 감사 추적
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    issueId: bigint("issue_id", { mode: "number" })
+      .notNull()
+      .references(() => issues.id, { onDelete: "cascade" }),
+    projectId: integer("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    /** new_issue | regression | spike */
+    type: text("type").notNull(),
+    /** email | slack */
+    channel: text("channel").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("notifications_issue_sent_idx").on(t.issueId, t.sentAt)],
+);
