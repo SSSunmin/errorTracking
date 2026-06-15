@@ -10,7 +10,7 @@
 
 - [x] 🔗 백엔드: 이벤트 페이로드 스키마 / API 스펙 수령 — `@errortracking/shared` 공용 의존성
 - [x] 대시보드 프레임워크·빌드 환경 셋업 — Vite + React 19 + TS, `/api` dev 프록시(same-origin 쿠키)
-- [ ] SDK 패키지(별도 번들) 빌드 환경 셋업 — 번들 크기 목표 설정 (STEP 2에서)
+- [x] SDK 패키지(별도 번들) 빌드 환경 — `vite build` lib 모드, ES + IIFE(전역 `errtrack`), shared 포함 단일 파일. **IIFE gzip 4KB** — `pnpm --filter @errortracking/sdk build`
 
 ## STEP 1. 대시보드 기반 + 이슈 목록 (Phase 1) ✅
 
