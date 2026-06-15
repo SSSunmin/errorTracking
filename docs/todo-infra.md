@@ -6,12 +6,12 @@
 
 ---
 
-## STEP 1. 로컬 개발 환경 (Phase 1 시작과 동시)
+## STEP 1. 로컬 개발 환경 (Phase 1 시작과 동시) ✅
 
-- [ ] PostgreSQL 로컬 컨테이너 (개발용 docker-compose)
-- [ ] DB 마이그레이션 실행 환경 정리 (🔗 백엔드: 마이그레이션 도구)
-- [ ] 환경변수/시크릿 관리 규칙 (.env 템플릿 — DB 접속, 시크릿 키)
-- [ ] 공통 로컬 실행 가이드 문서 (백엔드/프론트 모두 한 번에 띄우기)
+- [x] PostgreSQL 로컬 컨테이너 — `infra/docker-compose.dev.yml`
+- [x] DB 마이그레이션 실행 환경 — drizzle-kit (`pnpm db:migrate`)
+- [x] 환경변수/시크릿 관리 규칙 — `infra/.env.example`, `apps/api/.env.example`
+- [x] 공통 로컬 실행 가이드 — README "시작하기"
 
 ## STEP 2. 기본 배포 구성 (Phase 1~2)
 

@@ -100,4 +100,4 @@
 
 - [ ] SDK 번들 크기·초기화 시간 측정 (KPI: 페이지 로드 영향 최소화)
 - [ ] SDK 사용 문서 (init 옵션, API 레퍼런스, 업로드 도구 가이드)
-- [ ] 대시보드 빌드 산출물 Docker 이미지화 (🔗 인프라: Compose 편입)
+- [x] 대시보드 빌드 산출물 Docker 이미지화 — `infra/Dockerfile.dashboard` (nginx, Compose 편입)

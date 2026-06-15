@@ -56,7 +56,7 @@
 - [x] 로그인/세션 인증 API — users 테이블 + scrypt 해시 + 서명된 세션 쿠키 (`routes/auth.ts`, `lib/password.ts`, `lib/session.ts`)
 - [x] 프로젝트 CRUD API + DSN 발급/표시 (`routes/projects.ts`)
 - [x] 이슈 목록 API — 정렬(최근 발생/빈도/첫 발생), 상태 필터, 페이지네이션 (`routes/issues.ts`)
-- [ ] 🔗 프론트엔드: 이슈 목록 화면 연동 (프론트 트랙 대기)
+- [x] 🔗 프론트엔드: 이슈 목록 화면 연동 (프론트 STEP 1 완료)
 - [x] ✅ **마일스톤 M1 (백엔드 측)**: curl로 보낸 에러가 이슈로 묶여 목록 API에 나온다 — 2026-06-12 달성
 
 ## STEP 5. 이슈 상세 API (Phase 3) ✅
@@ -69,15 +69,15 @@
 - [x] **재발 감지** — resolved 이슈에 새 이벤트 → unresolved 전환 + regression 플래그 — STEP 3 이슈 upsert에서 조기 구현
 - [ ] (선택) `comments` / `activity` — 이슈 메모, 상태 변경 이력
 
-## STEP 6. 집계 + 검색 고도화 (Phase 4)
+## STEP 6. 집계 + 검색 고도화 (Phase 4) ✅
 
-- [ ] 이슈별 시간대별 발생 횟수 집계 (시간 단위 버킷 — 그래프/스파크라인용)
-- [ ] 이슈별 영향 유저 수 집계 (distinct user.id)
-- [ ] 태그별 분포 집계 — browser/OS/release별 발생 비율
-- [ ] 이슈 검색 API — 메시지/예외타입 텍스트 검색
-- [ ] 태그 검색 (`browser:Chrome` 문법 파싱)
-- [ ] 필터 확장 — level, environment, release
-- [ ] 🔗 프론트엔드: 그래프·필터·검색 UI 연동
+- [x] 이슈별 시간대별 발생 횟수 집계 — `stats` API (24h/14d 버킷), 스파크라인
+- [x] 이슈별 영향 유저 수 집계 — STEP 3 user_count + users_affected
+- [x] 태그별 분포 집계 — `tags` API (browser/os/release/environment)
+- [x] 이슈 검색 API — 제목 ILIKE 텍스트 검색
+- [x] 태그 검색 (`browser:Chrome` 문법 파싱) — `lib/search.ts`
+- [x] 필터 확장 — level + 태그 문법(environment/release)
+- [x] 🔗 프론트엔드: 그래프·필터·검색 UI 연동 (프론트 STEP 4-C 완료)
 
 ## STEP 7. 알림 (Phase 5) ✅
 
@@ -100,7 +100,7 @@
 - [x] 소스맵 없을 때 원본 그대로 처리하는 폴백 (release/아티팩트 없으면 그대로)
 - [x] 인증: 프로젝트 `secret_key`(public_key와 별개, 빌드 시 CLI용) — 🔗 프론트엔드 CLI와 스펙 일치
 - [x] 심볼리케이션은 핑거프린팅 앞 단계 — 원본 프레임으로 그룹핑(빌드 해시 무관)
-- [ ] ✅ **마일스톤 M6**: minify된 에러가 원본 코드 위치로 표시된다 — 백엔드 완료, 대시보드 컨텍스트 표시 + CLT는 프론트 STEP 6
+- [x] ✅ **마일스톤 M6**: minify된 에러가 원본 코드 위치로 표시된다 — 대시보드 컨텍스트 표시 + CLI 프론트 STEP 6 완료
 
 ## STEP 9. 운영 코드 (Phase 7) ✅
 
