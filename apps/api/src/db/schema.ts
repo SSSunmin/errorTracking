@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   bigint,
   bigserial,
@@ -79,8 +80,13 @@ export const projects = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     platform: text("platform").notNull().default("javascript"),
-    /** DSN의 public_key — 수집 API 인증에 사용 */
+    /** DSN의 public_key — 수집 API 인증에 사용 (공개) */
     publicKey: text("public_key").notNull(),
+    /** 소스맵 업로드 인증용 비밀 키 — 빌드/배포 시 CLI가 사용 (비공개)
+     *  기존 행 백필용 md5 기본값, 신규는 앱이 randomBytes로 강한 키 생성 */
+    secretKey: text("secret_key")
+      .notNull()
+      .default(sql`md5(random()::text || clock_timestamp()::text)`),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

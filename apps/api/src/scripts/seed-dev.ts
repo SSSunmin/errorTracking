@@ -39,6 +39,7 @@ const project =
 
 console.log(`project id:  ${project.id}`);
 console.log(`public_key:  ${project.publicKey}`);
+console.log(`secret_key:  ${project.secretKey}  (소스맵 업로드용)`);
 console.log(
   `DSN:         ${buildDsn({
     protocol: "http",

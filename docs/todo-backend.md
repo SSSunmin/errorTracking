@@ -92,14 +92,15 @@
 
 ## STEP 8. 소스맵 + 심볼리케이션 (Phase 6 — 난이도 최고, 마지막)
 
-- [ ] 소스맵 업로드 엔드포인트 — `POST /api/{project_id}/releases/{version}/files/`
-- [ ] 릴리즈/아티팩트 저장 로직 (`releases`, `artifacts` 테이블)
-- [ ] 심볼리케이션 — 이벤트의 release + 파일명으로 소스맵 조회
-- [ ] 압축된 (line, col) → 원본 파일/함수/라인 복원
-- [ ] 복원 위치 기준 주변 소스 5줄 추출해 프레임에 첨부 (pre/context/post_context)
-- [ ] 소스맵 없을 때 원본 그대로 처리하는 폴백
-- [ ] 🔗 프론트엔드: 소스맵 업로드 CLI/플러그인과 엔드포인트 스펙 맞추기
-- [ ] ✅ **마일스톤 M6**: minify된 에러가 원본 코드 위치로 표시된다
+- [x] 소스맵 업로드 엔드포인트 — `POST /api/{project_id}/releases/{version}/files/` (`routes/releases.ts`), secret_key 인증, bodyLimit 20MB
+- [x] 릴리즈/아티팩트 저장 로직 — 릴리즈 find-or-create + 아티팩트 upsert
+- [x] 심볼리케이션 — 이벤트 release + 프레임 basename으로 소스맵 조회 (`pipeline/symbolicate.ts`, `@jridgewell/trace-mapping`)
+- [x] 압축된 (line, col) → 원본 파일/함수/라인 복원 (colno 1-based↔0-based 변환)
+- [x] 복원 위치 기준 주변 소스 5줄 추출 (pre/context/post_context, sourcesContent에서)
+- [x] 소스맵 없을 때 원본 그대로 처리하는 폴백 (release/아티팩트 없으면 그대로)
+- [x] 인증: 프로젝트 `secret_key`(public_key와 별개, 빌드 시 CLI용) — 🔗 프론트엔드 CLI와 스펙 일치
+- [x] 심볼리케이션은 핑거프린팅 앞 단계 — 원본 프레임으로 그룹핑(빌드 해시 무관)
+- [ ] ✅ **마일스톤 M6**: minify된 에러가 원본 코드 위치로 표시된다 — 백엔드 완료, 대시보드 컨텍스트 표시 + CLT는 프론트 STEP 6
 
 ## STEP 9. 운영 코드 (Phase 7)
 

@@ -28,6 +28,8 @@ function serialize(req: FastifyRequest, p: Project) {
     name: p.name,
     platform: p.platform,
     publicKey: p.publicKey,
+    /** 소스맵 업로드 CLI 인증용 (비공개) */
+    secretKey: p.secretKey,
     dsn: toDsn(req, p),
     createdAt: p.createdAt,
   };
@@ -51,7 +53,12 @@ export function registerProjectRoutes(app: FastifyInstance): void {
         : "javascript";
     const [created] = await db
       .insert(projects)
-      .values({ name, platform, publicKey: randomBytes(16).toString("hex") })
+      .values({
+        name,
+        platform,
+        publicKey: randomBytes(16).toString("hex"),
+        secretKey: randomBytes(16).toString("hex"),
+      })
       .returning();
     return reply.code(201).send(serialize(req, created!));
   });

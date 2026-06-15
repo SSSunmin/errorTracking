@@ -8,6 +8,7 @@ import { registerAlertRuleRoutes } from "./routes/alert-rules";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerIssueRoutes } from "./routes/issues";
 import { registerProjectRoutes } from "./routes/projects";
+import { registerReleaseRoutes } from "./routes/releases";
 import { registerStoreRoute } from "./routes/store";
 
 export async function buildServer(): Promise<FastifyInstance> {
@@ -75,6 +76,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   registerProjectRoutes(app);
   registerIssueRoutes(app);
   registerAlertRuleRoutes(app);
+  registerReleaseRoutes(app);
 
   return app;
 }

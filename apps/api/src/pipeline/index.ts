@@ -6,6 +6,7 @@ import { dispatchNotifications } from "../notify";
 import { decideTrigger } from "../notify/triggers";
 import { computeFingerprint } from "./fingerprint";
 import { normalizeEvent } from "./normalize";
+import { symbolicate } from "./symbolicate";
 
 export interface IngestJob {
   projectId: number;
@@ -23,6 +24,8 @@ const SPIKE_THRESHOLD = Number(process.env.SPIKE_THRESHOLD ?? 10);
  */
 export async function processEvent(job: IngestJob): Promise<void> {
   const normalized = normalizeEvent(job.payload);
+  // 심볼리케이션 — 핑거프린팅 앞 단계 (원본 프레임으로 그룹핑하면 빌드 해시에 안 흔들림)
+  await symbolicate(normalized.payload, job.projectId);
   const fp = computeFingerprint(normalized.payload);
 
   const result = await db.transaction(async (tx) => {

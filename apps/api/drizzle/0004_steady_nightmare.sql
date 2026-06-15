@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "secret_key" text DEFAULT md5(random()::text || clock_timestamp()::text) NOT NULL;

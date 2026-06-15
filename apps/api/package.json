@@ -16,6 +16,7 @@
     "@errortracking/shared": "workspace:*",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
+    "@jridgewell/trace-mapping": "^0.3.31",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",
     "nodemailer": "^8.0.11",
