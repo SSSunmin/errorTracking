@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { alertRules, projects } from "../db/schema";
+import { isValidEmail, isValidSlackWebhook } from "../lib/channel-validation";
 import { requireAuth } from "../lib/session";
 
 type AlertRule = typeof alertRules.$inferSelect;
@@ -46,10 +47,10 @@ function parseChannel(
   if (typeof v !== "string") throw new Error(`invalid ${kind}`);
   const s = v.trim();
   if (!s) return null;
-  if (kind === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) {
+  if (kind === "email" && !isValidEmail(s)) {
     throw new Error("invalid email");
   }
-  if (kind === "slack" && !/^https:\/\/hooks\.slack\.com\//.test(s)) {
+  if (kind === "slack" && !isValidSlackWebhook(s)) {
     throw new Error("invalid slack webhook url");
   }
   return s;

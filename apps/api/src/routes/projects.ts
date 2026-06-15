@@ -22,14 +22,17 @@ function toDsn(req: FastifyRequest, project: Project): string {
   });
 }
 
-function serialize(req: FastifyRequest, p: Project) {
+/**
+ * 직렬화 — secret_key는 노출 표면을 줄이기 위해 단건/생성 응답에서만 포함하고
+ * 목록 응답에서는 제외한다(`includeSecret=false`).
+ */
+function serialize(req: FastifyRequest, p: Project, includeSecret = false) {
   return {
     id: p.id,
     name: p.name,
     platform: p.platform,
     publicKey: p.publicKey,
-    /** 소스맵 업로드 CLI 인증용 (비공개) */
-    secretKey: p.secretKey,
+    ...(includeSecret ? { secretKey: p.secretKey } : {}),
     dsn: toDsn(req, p),
     createdAt: p.createdAt,
   };
@@ -60,7 +63,7 @@ export function registerProjectRoutes(app: FastifyInstance): void {
         secretKey: randomBytes(16).toString("hex"),
       })
       .returning();
-    return reply.code(201).send(serialize(req, created!));
+    return reply.code(201).send(serialize(req, created!, true));
   });
 
   app.get<{ Params: { id: string } }>(
@@ -69,7 +72,7 @@ export function registerProjectRoutes(app: FastifyInstance): void {
     async (req, reply) => {
       const project = await findProject(req.params.id);
       if (!project) return reply.code(404).send({ error: "unknown project" });
-      return reply.send(serialize(req, project));
+      return reply.send(serialize(req, project, true));
     },
   );
 
@@ -95,7 +98,7 @@ export function registerProjectRoutes(app: FastifyInstance): void {
         .set(patch)
         .where(eq(projects.id, project.id))
         .returning();
-      return reply.send(serialize(req, updated!));
+      return reply.send(serialize(req, updated!, true));
     },
   );
 

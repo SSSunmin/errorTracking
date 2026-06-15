@@ -126,6 +126,27 @@
 - [x] **requireAuth 리팩터** — 검증된 userId를 `req.userId`에 실어 라우트가 재조회 없이 `currentUserId(req)`로 읽음(/me의 이중 세션 조회 제거) — 2026-06-15 sunmin
 - 검증: 단위 테스트 5개(newSessionId 64hex·고유성, isExpired 경계) → 워크스페이스 총 124개 통과. e2e(curl): 로그인 시 세션 행 생성(id 64자) → 로그아웃 시 **서버측 행 삭제** → 옛 쿠키 재사용 401(탈취 쿠키 무효화 입증) → 위조/무쿠키 401. 브라우저 e2e: 대시보드 origin에서 login→me→projects 200, `document.cookie`에 et_session 안 보임(**httpOnly 입증**), 새로고침 후 세션 유지. 빌드 산출 HTML에 CSP meta 확인
 
+## 12. 보안 리뷰 대응 (security-reviewer 에이전트 전수 점검) ✅
+
+> 전체 보안 리뷰 결과 Critical 0 · High 3 · Medium 5 · Low 4. 가치 높은 항목 즉시 수정, 설계 결정/대형 변경은 아래 잔여로 기록.
+
+- [x] **H-1: trustProxy 미설정 → 로그인/업로드 rate limit 우회** — 프록시 뒤에서 `req.ip`가 nginx IP로 고정돼 IP별 제한이 무력화됨. `TRUST_PROXY` env(홉 수)로 `req.ip` 복원, 운영 compose `TRUST_PROXY=1`. 미설정 시 false(직접 노출 시 XFF 위조 방지) (`server.ts`) — 2026-06-15 sunmin
+- [x] **H-2: Slack webhook SSRF 우회** — 접두 문자열 검사 → **URL 파싱 후 호스트 정확 일치**(`isValidSlackWebhook`). `hooks.slack.com@evil.com`·`hooks.slack.com.evil.com` 등 위장 차단. 이메일 검증도 분리(`lib/channel-validation.ts` +테스트 11개) — 2026-06-15 sunmin
+- [x] **H-3: 업로드 토큰 타이밍-비안전 비교 + 무차별 무방비** — `timingSafeEqual` 비교 + 업로드 IP당 분당 30회 rate limit (`routes/releases.ts`) — 2026-06-15 sunmin
+- [x] **M-1: 수집 큐 무제한 → 메모리 고갈 DoS** — 큐 상한(`MAX_QUEUE` 1만) 초과 시 backpressure `503 + Retry-After` (`queue/`, `routes/store.ts`) — 2026-06-15 sunmin
+- [x] **M-4(부분): secret_key 과다 노출** — 프로젝트 **목록 응답에서 secret_key 제외**, 단건/생성 응답에서만 포함 (노출 표면 축소) — 2026-06-15 sunmin
+- [x] **L-1: esbuild RCE 권고(dev 전용)** — pnpm override로 `esbuild>=0.28.1` 강제, `pnpm audit --audit-level high` → "No known vulnerabilities" — 2026-06-15 sunmin
+- 검증: 채널 검증 단위 11개 → 워크스페이스 **219개**. e2e: Slack 위장 URL 2종 400·정상 200, secret_key 목록 부재·단건 존재 확인
+- 양호 확인(Info): SQL/JSONB 인젝션 없음(Drizzle 파라미터 바인딩, 태그 키도 `ARRAY[...]` 바인딩), XSS 없음(React 이스케이프·`dangerouslySetInnerHTML` 0건), 시크릿 git clean, 세션/CSRF(sameSite lax) 방어 견고
+
+### 잔여 보안 항목 (설계 결정 / 후속)
+- [ ] **H-2 잔여: 이메일 알림 수신지** — 단일 테넌트(인증=신뢰 관리자) 전제라 admin이 설정한 주소로만 발송 → 현 위협 모델 내 수용. 멀티유저 전환 시 발송 도메인 allowlist 필요
+- [ ] **M-2: 대형 소스맵 `JSON.parse` 블로킹** — 아티팩트 크기 상한 + TraceMap LRU 캐시(이벤트 간) 도입
+- [ ] **M-3: 카드번호 정규식 단순화** — 백트래킹 표면 축소(Luhn 결합/고정 길이) + 스크럽 재귀 깊이 한도
+- [ ] **M-4 잔여: secret_key reveal 분리** — 목록 제외는 완료. 단건도 "reveal" 액션 + 회전 기능은 후속
+- [ ] **M-5: Host 헤더 인젝션** — 운영에서 `PUBLIC_BASE_URL` 필수화(미설정 시 기동 거부) + host allowlist
+- [ ] **L-2/L-4: healthz rate limit · CSP nonce/헤더화** — 후속
+
 ---
 
 ## 비고

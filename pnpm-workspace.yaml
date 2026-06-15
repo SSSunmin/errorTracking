@@ -3,3 +3,6 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+# esbuild <0.28.1 RCE 권고(GHSA-gv7w-rqvm-qjhr) — dev 전용이나 전 트리 패치 버전 강제
+overrides:
+  esbuild: ">=0.28.1"

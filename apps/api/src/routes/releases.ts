@@ -1,15 +1,27 @@
+import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { artifacts, projects, releases } from "../db/schema";
+import { checkRateLimit } from "../lib/rate-limit";
 
 /** 소스맵 업로드 최대 크기 (이벤트 1MB보다 큼) */
 const UPLOAD_BODY_LIMIT = 20 * 1024 * 1024;
+
+/** 업로드 시도 제한 — IP당 분당 (토큰 무차별 방지) */
+const UPLOAD_ATTEMPTS_PER_MINUTE = 30;
 
 /** 업로드 인증 — 프로젝트 secret_key (X-Upload-Token 헤더) */
 function extractUploadToken(req: FastifyRequest): string | null {
   const header = req.headers["x-upload-token"];
   return typeof header === "string" && header.length > 0 ? header : null;
+}
+
+/** 타이밍 사이드채널 안전 토큰 비교 */
+function tokenMatches(expected: string, got: string): boolean {
+  const a = Buffer.from(expected);
+  const b = Buffer.from(got);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 export function registerReleaseRoutes(app: FastifyInstance): void {
@@ -25,7 +37,18 @@ export function registerReleaseRoutes(app: FastifyInstance): void {
         return reply.code(404).send({ error: "unknown project" });
       }
 
-      // secret_key 인증
+      // 토큰 무차별 방지 — IP당 시도 제한
+      const rate = checkRateLimit(`upload:${req.ip}`, {
+        limit: UPLOAD_ATTEMPTS_PER_MINUTE,
+      });
+      if (!rate.allowed) {
+        return reply
+          .code(429)
+          .header("Retry-After", String(rate.retryAfterSec))
+          .send({ error: "too many upload attempts" });
+      }
+
+      // secret_key 인증 (타이밍 안전 비교)
       const token = extractUploadToken(req);
       if (!token) {
         return reply.code(401).send({ error: "missing upload token" });
@@ -34,7 +57,7 @@ export function registerReleaseRoutes(app: FastifyInstance): void {
         where: eq(projects.id, projectId),
       });
       if (!project) return reply.code(404).send({ error: "unknown project" });
-      if (project.secretKey !== token) {
+      if (!tokenMatches(project.secretKey, token)) {
         return reply.code(401).send({ error: "invalid upload token" });
       }
 

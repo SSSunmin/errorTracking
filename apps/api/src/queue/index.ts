@@ -7,9 +7,15 @@ import { processEvent, type IngestJob } from "../pipeline";
 const jobs: IngestJob[] = [];
 let draining = false;
 
-export function enqueue(job: IngestJob): void {
+/** 큐 상한 — 초과 시 backpressure(수집 거부)로 메모리 고갈 DoS 방지 */
+const MAX_QUEUE = Number(process.env.MAX_QUEUE ?? 10_000);
+
+/** 적재 성공 여부 반환 — 가득 차면 false (호출부에서 503) */
+export function enqueue(job: IngestJob): boolean {
+  if (jobs.length >= MAX_QUEUE) return false;
   jobs.push(job);
   void drain();
+  return true;
 }
 
 export function pendingCount(): number {

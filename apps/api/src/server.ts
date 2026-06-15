@@ -15,10 +15,22 @@ import { registerProjectRoutes } from "./routes/projects";
 import { registerReleaseRoutes } from "./routes/releases";
 import { registerStoreRoute } from "./routes/store";
 
+/**
+ * 신뢰할 프록시 홉 수 — 리버스 프록시(nginx) 뒤에서 req.ip를 실제 클라이언트로 복원.
+ * 미설정 시 false(XFF 무시) — 직접 노출 환경에서 헤더 위조 방지. 운영 compose는 TRUST_PROXY=1.
+ */
+function parseTrustProxy(v: string | undefined): boolean | number {
+  if (!v) return false;
+  if (v === "true") return true;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : false;
+}
+
 export async function buildServer(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: true,
     bodyLimit: MAX_EVENT_BYTES, // 초과 시 413
+    trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   });
 
   // CORS 이원화:

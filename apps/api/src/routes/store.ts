@@ -75,9 +75,15 @@ export function registerStoreRoute(app: FastifyInstance): void {
         return reply.code(202).send({ id: eventId, duplicate: true });
       }
 
-      // 5. 즉시 202 응답 후 비동기 처리 — 파이프라인 지연이 클라이언트에 영향 없도록
+      // 5. 즉시 202 응답 후 비동기 처리 — 파이프라인 지연이 클라이언트에 영향 없도록.
+      //    큐가 가득 차면 backpressure(503)로 메모리 고갈 방지.
       const payload = { ...(body as EventPayload), event_id: eventId };
-      enqueue({ projectId, payload });
+      if (!enqueue({ projectId, payload })) {
+        return reply
+          .code(503)
+          .header("Retry-After", "5")
+          .send({ error: "server busy" });
+      }
       return reply.code(202).send({ id: eventId });
     },
   );

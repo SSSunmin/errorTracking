@@ -28,6 +28,8 @@ services:
       NODE_ENV: production
       SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      # nginx 1홉 뒤 — req.ip를 실제 클라이언트로 복원(로그인/업로드 rate limit 정확도)
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       DASHBOARD_ORIGINS: ${DASHBOARD_ORIGINS:-}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
       DASHBOARD_URL: ${DASHBOARD_URL:-}
