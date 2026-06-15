@@ -97,9 +97,12 @@
 - 검증: 단위 7개(basename·extractContext·applySourceMap, 손수 만든 소스맵으로 minify→원본 복원). e2e: 업로드 인증(무토큰/오토큰 401·유효 201) → minify 프레임(bundle.min.js:1:1) 이벤트 → 저장된 프레임이 app.js:3 + context_line "throw new Error('boom')" + pre/post_context로 복원, in_app 보존. api 테스트 77개
 - [x] 🔗 대시보드 소스 컨텍스트 표시 + 업로드 CLI/플러그인 (프론트 STEP 6) → **✅ M6 완성** — 2026-06-15
 
-## 9. 운영 (todo STEP 9)
+## 9. 운영 (todo STEP 9) ✅
 
-- [ ] 보관 기간 삭제 잡(**필수**) · 소스맵 정리 잡 · 자기 에러 로깅 분리 (healthz는 §3에서 선구현됨)
+- [x] **보관 기간 삭제 잡(필수)** — `ops/retention.ts`: events 중 90일(`EVENT_RETENTION_DAYS`) 경과분 삭제(rowCount만, 대량 삭제 시 행 미적재). **issues는 영구 보존**(이슈 요약). 서버 6시간 인터벌(`unref`, 기동 직후 1회) + `pnpm --filter @errortracking/api retention` 스크립트(외부 cron용) — 2026-06-15 sunmin
+- [x] **소스맵 아티팩트 정리** — `deleteOldArtifacts`: `ARTIFACT_RETENTION_DAYS`(기본 90) 경과 릴리즈 삭제 → cascade로 아티팩트 정리 — 2026-06-15 sunmin
+- [x] **에러 핸들러** — `setErrorHandler`: 5xx는 서버 로그, 클라이언트엔 "internal server error"(스택/내부 정보 유출 차단). 자기 자신을 SDK로 추적 안 함 → 자기 보고 무한 루프 없음 — 2026-06-15 sunmin
+- 검증: 단위 3개(cutoffDate) → api 80개. e2e: 100일 전 이벤트 삽입 → `pnpm retention` → 1건 삭제·최근 이벤트 보존·이슈 수 유지(영구 보존) 확인
 
 ## 10. 품질 (테스트 · 보안) — 모든 STEP의 완료 기준에 포함
 

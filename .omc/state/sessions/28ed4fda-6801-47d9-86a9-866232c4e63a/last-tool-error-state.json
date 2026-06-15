@@ -1,0 +1,7 @@
+{
+  "tool_name": "PowerShell",
+  "tool_input_preview": "{\"command\":\"pnpm --filter @errortracking/api typecheck; if ($?) { pnpm --filter @errortracking/api test 2>&1 | Select-String -Pattern \\\"Test Files|Tests |FAIL|error TS\\\" }\",\"timeout\":180000,\"descripti...",
+  "error": "Exit code 2\n$ tsc --noEmit\nsrc/server.ts(77,20): error TS18046: 'err' is of type 'unknown'.\r\nsrc/server.ts(81,64): error TS18046: 'err' is of type 'unknown'.\r\nD:\\project\\errorTracking\\apps\\api:\r\n[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @errortracking/api@0.0.1 typecheck: `tsc --noEmit`\nExit status 2",
+  "timestamp": "2026-06-15T00:59:11.059Z",
+  "retry_count": 1
+}

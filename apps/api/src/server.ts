@@ -1,4 +1,8 @@
-import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
+import Fastify, {
+  type FastifyError,
+  type FastifyInstance,
+  type FastifyRequest,
+} from "fastify";
 import cookie from "@fastify/cookie";
 import cors, { type FastifyCorsOptions } from "@fastify/cors";
 import { MAX_EVENT_BYTES } from "@errortracking/shared";
@@ -69,6 +73,16 @@ export async function buildServer(): Promise<FastifyInstance> {
   app.get("/healthz", async (_req, reply) => {
     await pool.query("SELECT 1");
     return reply.send({ ok: true });
+  });
+
+  // 서버 에러는 로그로만 남기고 클라이언트엔 일반 메시지 — 스택/내부 정보 유출 방지.
+  // (자기 자신을 SDK로 추적하지 않으므로 자기 보고 무한 루프 없음)
+  app.setErrorHandler((err: FastifyError, _req, reply) => {
+    const status = err.statusCode ?? 500;
+    if (status >= 500) app.log.error(err);
+    return reply
+      .code(status)
+      .send({ error: status >= 500 ? "internal server error" : err.message });
   });
 
   registerStoreRoute(app);

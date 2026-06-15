@@ -1,0 +1,153 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1781484986204,
+  "projectRoot": "D:\\project\\errorTracking",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pnpm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "pnpm test",
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {
+      "db:up": "docker compose -f infra/docker-compose.dev.yml up -d",
+      "db:down": "docker compose -f infra/docker-compose.dev.yml down",
+      "test": "pnpm -r test",
+      "typecheck": "pnpm -r typecheck"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "apps": {
+      "path": "apps",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1781484986165,
+      "keyFiles": []
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 8,
+      "lastAccessed": 1781484986165,
+      "keyFiles": [
+        "BACKLOG-backend.md",
+        "BACKLOG-frontend.md",
+        "BACKLOG-infra.md",
+        "error-tracking-checklist.md",
+        "service-plan.md"
+      ]
+    },
+    "infra": {
+      "path": "infra",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1781484986184,
+      "keyFiles": [
+        "docker-compose.dev.yml"
+      ]
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1781484986184,
+      "keyFiles": []
+    },
+    "apps\\api": {
+      "path": "apps\\api",
+      "purpose": "API routes",
+      "fileCount": 4,
+      "lastAccessed": 1781484986184,
+      "keyFiles": [
+        "drizzle.config.ts",
+        "package.json",
+        "tsconfig.json"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "apps\\api\\src\\server.ts",
+      "accessCount": 4,
+      "lastAccessed": 1781485163787,
+      "type": "file"
+    },
+    {
+      "path": "docs\\todo-backend.md",
+      "accessCount": 2,
+      "lastAccessed": 1781485233017,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\ops\\retention.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781485077459,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\ops\\retention.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781485085166,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\scripts\\retention.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781485091581,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781485106283,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\package.json",
+      "accessCount": 1,
+      "lastAccessed": 1781485131589,
+      "type": "file"
+    },
+    {
+      "path": ".retention-test.sql",
+      "accessCount": 1,
+      "lastAccessed": 1781485204614,
+      "type": "file"
+    },
+    {
+      "path": "docs\\BACKLOG-backend.md",
+      "accessCount": 1,
+      "lastAccessed": 1781485245155,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
