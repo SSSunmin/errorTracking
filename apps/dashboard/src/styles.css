@@ -412,13 +412,28 @@ select:focus {
 
 .issue-row {
   display: grid;
-  grid-template-columns: 4px 32px 70px 1fr 80px 80px 110px;
-  gap: 0 14px;
+  grid-template-columns: 4px 30px 64px 1fr 96px 64px 64px 96px;
+  gap: 0 12px;
   align-items: center;
   padding: 0 16px 0 0;
   border-bottom: 1px solid var(--border);
   min-height: 58px;
   transition: background 0.1s;
+}
+
+.spark-cell {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sparkline {
+  display: block;
+}
+
+.spark-empty {
+  border-bottom: 1px dashed var(--border-strong);
+  opacity: 0.4;
 }
 
 .issue-row.clickable {
@@ -812,6 +827,131 @@ a.back-link:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── 검색 바 ────────────────────────────── */
+.issue-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.issue-search input {
+  flex: 1;
+  max-width: 520px;
+}
+
+/* ── 카드 헤더 + 세그먼트(소형) ─────────── */
+.card-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-head-row .card-title {
+  margin: 0;
+}
+
+.seg-sm button {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+/* ── 발생 추이 그래프 ───────────────────── */
+.trend {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.trend-col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 22px;
+  background: var(--accent);
+  opacity: 0.85;
+  transition: opacity 0.1s;
+}
+
+.trend-col:hover .trend-bar {
+  opacity: 1;
+}
+
+.trend-loading {
+  height: 120px;
+  display: grid;
+  place-items: center;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* ── 태그 분포 ──────────────────────────── */
+.dist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px 24px;
+}
+
+.dist-title {
+  margin: 0 0 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.dist-bar-track {
+  position: relative;
+  flex: 1;
+  height: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.dist-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent-dim);
+  border-right: 2px solid var(--accent);
+}
+
+.dist-label {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.dist-pct {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  min-width: 34px;
+  text-align: right;
 }
 
 /* ── Breadcrumbs 타임라인 ───────────────── */

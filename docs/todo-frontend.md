@@ -74,12 +74,12 @@
 - [x] Breadcrumbs 타임라인 표시 — 최신순, 카테고리 라벨·색상, 시각 (`lib/breadcrumbs.ts`)
 - [x] 컨텍스트 패널 — user, browser, os, device, request (STEP 3에서 구현, device는 4-A 데이터로 채워짐)
 - [x] 이벤트 태그 표시 — 이슈 상세에 tag pill (분포 집계는 아래 별도)
-- [ ] 태그 분포 — browser별 %, release별 % 등 (🔗 백엔드: 집계 API §6)
-- [ ] 발생 추이 그래프 — 24시간 / 14일 (🔗 백엔드: 집계 API §6)
-- [ ] 이슈 목록 행에 스파크라인 (🔗 백엔드: 집계 API §6)
-- [ ] 검색 — 메시지/예외타입 텍스트, 태그 검색 (`browser:Chrome` 문법) (🔗 백엔드 §6)
-- [ ] 필터 확장 — level, environment, release (🔗 백엔드 §6)
-- [x] ✅ **마일스톤 M4**: 에러 직전 행적과 환경 정보가 함께 보인다 — 2026-06-15 달성 (Breadcrumbs 타임라인 + 컨텍스트/태그). 그래프·검색은 백엔드 집계 API 후속
+- [x] 태그 분포 — browser/os/release/environment별 % 막대 (인라인 SVG, 차트 라이브러리 없음)
+- [x] 발생 추이 그래프 — 24시간 / 14일 토글 (TrendBars 인라인 SVG)
+- [x] 이슈 목록 행에 스파크라인 — 최근 24시간 시간대별 막대 (Sparkline 인라인 SVG)
+- [x] 검색 — 제목 텍스트 + 태그 검색 (`browser:Chrome` 문법), 검색바 폼
+- [x] 필터 확장 — level 셀렉트 (environment/release는 태그 검색 문법으로 지원)
+- [x] ✅ **마일스톤 M4 완전 달성**: 에러 직전 행적·환경 정보·추이·태그분포·검색 — 2026-06-15
 
 ## STEP 5. 알림 설정 UI (Phase 5)
 

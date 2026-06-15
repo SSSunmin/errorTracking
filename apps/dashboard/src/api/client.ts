@@ -3,10 +3,12 @@ import type {
   IssueDetail,
   IssueListResponse,
   IssueSort,
+  IssueStats,
   Project,
+  TagDistribution,
   User,
 } from "./types";
-import type { IssueStatus } from "@errortracking/shared";
+import type { IssueStatus, Severity } from "@errortracking/shared";
 
 export class ApiError extends Error {
   constructor(
@@ -64,6 +66,8 @@ export const api = {
       sort?: IssueSort;
       page?: number;
       limit?: number;
+      q?: string;
+      level?: Severity;
     } = {},
   ) => {
     const params = new URLSearchParams();
@@ -71,6 +75,8 @@ export const api = {
     if (opts.sort) params.set("sort", opts.sort);
     if (opts.page) params.set("page", String(opts.page));
     if (opts.limit) params.set("limit", String(opts.limit));
+    if (opts.q) params.set("q", opts.q);
+    if (opts.level) params.set("level", opts.level);
     const qs = params.toString();
     return request<IssueListResponse>(
       `/api/projects/${projectId}/issues${qs ? `?${qs}` : ""}`,
@@ -79,6 +85,10 @@ export const api = {
 
   getIssue: (issueId: number | string) =>
     request<IssueDetail>(`/api/issues/${issueId}`),
+  getIssueStats: (issueId: number | string, window: "24h" | "14d") =>
+    request<IssueStats>(`/api/issues/${issueId}/stats?window=${window}`),
+  getIssueTags: (issueId: number | string) =>
+    request<TagDistribution>(`/api/issues/${issueId}/tags`),
   listIssueEvents: (issueId: number | string, page = 1, limit = 1) =>
     request<EventListResponse>(
       `/api/issues/${issueId}/events?page=${page}&limit=${limit}`,

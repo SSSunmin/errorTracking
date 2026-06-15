@@ -26,7 +26,25 @@ export interface IssueSummary {
   lastSeen: string;
   timesSeen: number;
   userCount: number;
+  /** 최근 24시간 시간대별 발생 수 (24개) */
+  sparkline: number[];
 }
+
+export interface IssueStats {
+  window: "24h" | "14d";
+  bucketSec: number;
+  startEpoch: number;
+  buckets: number[];
+}
+
+export interface TagValue {
+  value: string;
+  count: number;
+  percent: number;
+}
+
+/** browser/os/release/environment → 분포 */
+export type TagDistribution = Record<string, TagValue[]>;
 
 export type IssueSort = "last_seen" | "first_seen" | "times_seen";
 

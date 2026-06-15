@@ -55,7 +55,12 @@
 - [x] **대시보드 Breadcrumbs 타임라인** — 이슈 상세에 에러 직전 행적 최신순 표시(카테고리 라벨·색상: CLICK/NAV/HTTP/LOG/WARN/ERROR, http 4xx+는 빨강, 시각 HH:MM:SS). 이벤트 태그 pill 표시. 표시 로직 `lib/breadcrumbs.ts`(+테스트 8개) (`pages/IssueDetailPage.tsx`) — 2026-06-15 sunmin
 - 검증(브라우저 e2e): 이슈 상세에서 Breadcrumbs 4종(HTTP→WARN→LOG→CLICK 최신순) + 태그(feature=checkout) + 컨텍스트(device 포함) 렌더 확인. 워크스페이스 테스트 총 162개
 - ✅ **M4 마일스톤 달성** — 에러 직전 행적·환경 정보가 대시보드에 함께 표시 — 2026-06-15
-- [ ] 🎯 **집계 의존 화면** — 태그 분포·추이 그래프·스파크라인·검색·필터 확장 (백엔드 집계 API §6 선행 필요)
+- [x] **발생 추이 그래프** — 이슈 상세에 24시간/14일 토글 막대 그래프(`TrendBars`), 빈 버킷 포함 (`components/charts.tsx`) — 2026-06-15 sunmin
+- [x] **태그 분포** — browser/os/release/environment별 value→percent 막대(내림차순), 한국어 라벨 — 2026-06-15 sunmin
+- [x] **목록 스파크라인** — 이슈 행에 최근 24시간 막대(`Sparkline`), 데이터 없으면 점선 (인라인 SVG — 차트 라이브러리 없이 번들 gzip 80KB 유지) — 2026-06-15 sunmin
+- [x] **검색 + 필터** — 검색바 폼(제목 텍스트 + `browser:Chrome`·`release:1.0.0` 태그 문법, 지우기), level 셀렉트. page 1로 리셋 — 2026-06-15 sunmin
+- 검증(브라우저 e2e): 상세 추이 그래프(24h 24막대→14d 14막대 토글) + 태그 분포 4종(브라우저/OS/릴리즈/환경 100%) + 목록 스파크라인(활성 1·빈 3) + 태그검색(browser:Chrome→1건) + level 필터(warning→1건) 전부 확인. 워크스페이스 테스트 총 175개
+- ✅ **M4 마일스톤 완전 달성** — 데이터 심화 화면 완성 — 2026-06-15
 
 ## 5. 알림 설정 UI (todo STEP 5)
 

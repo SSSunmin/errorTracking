@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import type { IssueStatus, Severity } from "@errortracking/shared";
+import { SEVERITY_LEVELS, type IssueStatus, type Severity } from "@errortracking/shared";
 import { api } from "../api/client";
 import type { IssueListResponse, IssueSort, Project } from "../api/types";
+import { Sparkline } from "../components/charts";
 import { formatCount, timeAgo } from "../lib/format";
 
 const STATUS_TABS: { value: IssueStatus | "all"; label: string }[] = [
@@ -34,8 +40,12 @@ export function IssuesPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<IssueStatus | "all">("unresolved");
   const [sort, setSort] = useState<IssueSort>("last_seen");
+  const [level, setLevel] = useState<Severity | "">("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  // 입력 중인 검색어와 실제 적용된 검색어 분리 (Enter/제출 시 적용)
+  const [queryInput, setQueryInput] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     if (!projectId) return;
@@ -51,10 +61,18 @@ export function IssuesPage() {
         status: status === "all" ? undefined : status,
         sort,
         page,
+        q: query || undefined,
+        level: level || undefined,
       })
       .then(setData)
       .catch(() => setError("이슈 목록을 불러오지 못했습니다"));
-  }, [projectId, status, sort, page]);
+  }, [projectId, status, sort, page, query, level]);
+
+  function onSearch(e: FormEvent) {
+    e.preventDefault();
+    setPage(1);
+    setQuery(queryInput.trim());
+  }
 
   useEffect(() => {
     reload();
@@ -91,6 +109,31 @@ export function IssuesPage() {
         {data && <span className="page-sub">이슈 {data.total}건</span>}
       </div>
 
+      <form className="issue-search" onSubmit={onSearch}>
+        <input
+          type="text"
+          placeholder="검색 — 텍스트 또는 browser:Chrome release:1.0.0"
+          value={queryInput}
+          onChange={(e) => setQueryInput(e.target.value)}
+        />
+        <button className="btn" type="submit">
+          검색
+        </button>
+        {query && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              setQueryInput("");
+              setQuery("");
+              setPage(1);
+            }}
+          >
+            지우기
+          </button>
+        )}
+      </form>
+
       <div className="issue-toolbar">
         <div className="seg" role="tablist">
           {STATUS_TABS.map((tab) => (
@@ -116,6 +159,20 @@ export function IssuesPage() {
           {SORT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={level}
+          onChange={(e) => {
+            setLevel(e.target.value as Severity | "");
+            setPage(1);
+          }}
+        >
+          <option value="">모든 level</option>
+          {SEVERITY_LEVELS.map((l) => (
+            <option key={l} value={l}>
+              {l}
             </option>
           ))}
         </select>
@@ -183,6 +240,9 @@ export function IssuesPage() {
                       {issue.culprit}
                     </div>
                   )}
+                </div>
+                <div className="spark-cell">
+                  <Sparkline data={issue.sparkline} />
                 </div>
                 <div className="metric">
                   {formatCount(issue.timesSeen)}

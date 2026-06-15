@@ -7,7 +7,13 @@ import type {
   Severity,
 } from "@errortracking/shared";
 import { api } from "../api/client";
-import type { IssueDetail, StoredEvent } from "../api/types";
+import type {
+  IssueDetail,
+  IssueStats,
+  StoredEvent,
+  TagDistribution,
+} from "../api/types";
+import { TrendBars } from "../components/charts";
 import { crumbStyle, crumbText, crumbTime } from "../lib/breadcrumbs";
 import { frameLocation, segmentFrames } from "../lib/frames";
 import { formatCount, timeAgo } from "../lib/format";
@@ -34,6 +40,9 @@ export function IssueDetailPage() {
   const [eventPage, setEventPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [stats, setStats] = useState<IssueStats | null>(null);
+  const [statsWindow, setStatsWindow] = useState<"24h" | "14d">("24h");
+  const [tags, setTags] = useState<TagDistribution | null>(null);
 
   useEffect(() => {
     if (!issueId) return;
@@ -41,7 +50,14 @@ export function IssueDetailPage() {
       .getIssue(issueId)
       .then(setIssue)
       .catch(() => setError("이슈를 불러오지 못했습니다"));
+    api.getIssueTags(issueId).then(setTags).catch(() => {});
   }, [issueId]);
+
+  useEffect(() => {
+    if (!issueId) return;
+    setStats(null);
+    api.getIssueStats(issueId, statsWindow).then(setStats).catch(() => {});
+  }, [issueId, statsWindow]);
 
   useEffect(() => {
     if (!issueId) return;
@@ -130,6 +146,33 @@ export function IssueDetailPage() {
           </button>
         </div>
       </div>
+
+      <section className="card">
+        <div className="card-head-row">
+          <h2 className="card-title">발생 추이</h2>
+          <div className="seg seg-sm">
+            <button
+              className={statsWindow === "24h" ? "active" : ""}
+              onClick={() => setStatsWindow("24h")}
+            >
+              24시간
+            </button>
+            <button
+              className={statsWindow === "14d" ? "active" : ""}
+              onClick={() => setStatsWindow("14d")}
+            >
+              14일
+            </button>
+          </div>
+        </div>
+        {stats ? (
+          <TrendBars data={stats.buckets} />
+        ) : (
+          <div className="trend-loading">불러오는 중...</div>
+        )}
+      </section>
+
+      {tags && <TagDistributionView tags={tags} />}
 
       <div className="event-nav">
         <button disabled={eventPage <= 1} onClick={() => setEventPage((p) => p - 1)}>
@@ -292,6 +335,39 @@ function CollapsedFrames({
           </div>
         ))}
     </div>
+  );
+}
+
+const TAG_LABELS: Record<string, string> = {
+  browser: "브라우저",
+  os: "OS",
+  release: "릴리즈",
+  environment: "환경",
+};
+
+function TagDistributionView({ tags }: { tags: TagDistribution }) {
+  const dims = Object.entries(tags).filter(([, vals]) => vals.length > 0);
+  if (dims.length === 0) return null;
+  return (
+    <section className="card">
+      <h2 className="card-title">태그 분포</h2>
+      <div className="dist-grid">
+        {dims.map(([key, values]) => (
+          <div className="dist-block" key={key}>
+            <h3 className="dist-title">{TAG_LABELS[key] ?? key}</h3>
+            {values.map((v) => (
+              <div className="dist-row" key={v.value}>
+                <div className="dist-bar-track">
+                  <div className="dist-bar" style={{ width: `${v.percent}%` }} />
+                  <span className="dist-label">{v.value}</span>
+                </div>
+                <span className="dist-pct">{v.percent}%</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
